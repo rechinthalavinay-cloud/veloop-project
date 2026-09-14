@@ -1,0 +1,118 @@
+.screen {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0d0d1a 0%, #1a0d2e 50%, #0d1a1a 100%);
+  color: #e8d8b0;
+}
+
+.loader,
+.modal {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.loader {
+  gap: 16px;
+  color: #f0d060;
+}
+
+.loader img {
+  animation: pop 1s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(212,175,55,0.6));
+}
+
+.loader strong {
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #f0d060;
+}
+
+.loader p {
+  color: rgba(200,180,140,0.6);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 3, 18, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 30;
+}
+
+.sheet {
+  width: min(360px, 100%);
+  background: linear-gradient(145deg, #1a1a2e, #12122a);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+  color: #e8d8b0;
+  text-align: center;
+}
+
+.sheet p {
+  color: rgba(200,180,140,0.7);
+  margin: 8px 0;
+}
+
+.sheet h2 {
+  color: #f0d060;
+  font-size: 1.6rem;
+  margin: 8px 0;
+  text-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.sheet img {
+  filter: drop-shadow(0 0 12px rgba(212,175,55,0.5));
+}
+
+.sheet button {
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  color: #0d0d1a;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(212,175,55,0.35);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.sheet button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,175,55,0.5);
+}
+
+.sheet button:disabled {
+  background: linear-gradient(135deg, #2a2a3a, #1a1a2a);
+  color: #555;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.ghost {
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+  color: rgba(200,180,140,0.7) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  box-shadow: none !important;
+}
+
+.dim {
+  filter: brightness(0.5) blur(1px);
+  pointer-events: none;
+}
+
+@keyframes pop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.1); }
+}

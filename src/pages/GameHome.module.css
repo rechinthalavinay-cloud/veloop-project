@@ -1,0 +1,216 @@
+.light {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 80% 0%, #ffe9b8, transparent 32%),
+    linear-gradient(180deg, #fff8ea, #f3efe4);
+  color: #2b2418;
+}
+
+.light[data-game="blade-master"] {
+  background:
+    radial-gradient(circle at 20% 0%, #ffd7b0, transparent 30%),
+    linear-gradient(180deg, #fff6ee, #efe4d6);
+}
+
+.light[data-game="slice-storm"] {
+  background:
+    radial-gradient(circle at 80% 10%, #ffd0d4, transparent 28%),
+    linear-gradient(180deg, #fff5f5, #f6e8e4);
+}
+
+.light[data-game="nut-craft"] {
+  background:
+    radial-gradient(circle at 70% 0%, #d8f0c4, transparent 30%),
+    linear-gradient(180deg, #f7fff0, #e9f0e0);
+}
+
+.light[data-game="bowlexa"] {
+  background:
+    radial-gradient(circle at 20% 8%, #cfe8ff, transparent 30%),
+    linear-gradient(180deg, #f4f9ff, #e4edf7);
+}
+
+.light[data-game="block-crush"] {
+  background:
+    radial-gradient(circle at 80% 0%, #ffd8b5, transparent 30%),
+    linear-gradient(180deg, #fff6ee, #f4e4d4);
+}
+
+.light[data-game="cosmo-warrior"] {
+  background:
+    radial-gradient(circle at 10% 0%, #d4dcff, transparent 30%),
+    linear-gradient(180deg, #f4f6ff, #e4e8f6);
+}
+
+.light[data-game="toilet-tactics"] {
+  background:
+    radial-gradient(circle at 80% 8%, #c8f3ee, transparent 30%),
+    linear-gradient(180deg, #f2fffd, #e0f2ef);
+}
+
+.light[data-game="word-hunt"] {
+  background:
+    radial-gradient(circle at 30% 0%, #ead9cc, transparent 30%),
+    linear-gradient(180deg, #fff8f2, #f0e6dc);
+}
+
+.light[data-game="bubble-blast"] {
+  background:
+    radial-gradient(circle at 80% 0%, #efd0fb, transparent 30%),
+    linear-gradient(180deg, #fcf4ff, #f1e4f7);
+}
+
+.light[data-game="merge-master"] {
+  background:
+    radial-gradient(circle at 16% 0%, #ffd4c2, transparent 30%),
+    linear-gradient(180deg, #fff5f0, #f6e4dc);
+}
+
+.light[data-game="wormzy"] {
+  background:
+    radial-gradient(circle at 84% 0%, #c9f0cc, transparent 30%),
+    linear-gradient(180deg, #f4fff5, #e3f2e4);
+}
+
+.light[data-game="aqua-fill"] {
+  background:
+    radial-gradient(circle at 20% 0%, #c8efff, transparent 30%),
+    linear-gradient(180deg, #f3fbff, #dceef8);
+}
+
+.light[data-game="realm-clash"] {
+  background:
+    radial-gradient(circle at 80% 0%, #ddd0ff, transparent 30%),
+    linear-gradient(180deg, #f7f3ff, #e8e0f6);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+}
+
+.back,
+.soon,
+.error button,
+.sheet button {
+  border: 0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coins {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(80, 50, 20, 0.08);
+}
+
+.coins img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.main {
+  width: min(560px, calc(100% - 28px));
+  margin: 0 auto;
+  padding-bottom: 90px;
+}
+
+.heroArt {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 18%;
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(80, 40, 10, 0.16);
+}
+
+.category {
+  margin: 18px 0 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: #8b7350;
+}
+
+.main h1 {
+  font-family: Outfit, sans-serif;
+  margin: 6px 0 4px;
+}
+
+.tagline {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: #8b5a2b;
+}
+
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 16px 0;
+}
+
+.soon {
+  width: 100%;
+  opacity: 0.7;
+}
+
+.error {
+  margin-top: 14px;
+  background: #fff1e8;
+  border: 1px solid #f0c3a0;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.guide {
+  margin-top: 28px;
+}
+
+.guide ol {
+  padding-left: 18px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 28, 16, 0.35);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 20;
+}
+
+.sheet {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.sheet img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 14px;
+}
+
+.sheet button {
+  width: 100%;
+  background: #d4af37;
+  color: #1d1608;
+}

@@ -1,0 +1,94 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(212, 175, 55, 0.18), transparent 32%),
+    #161827;
+}
+
+.panel {
+  width: min(440px, 100%);
+  background: #1c1e33;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.brand img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.brand h1 {
+  font-family: Outfit, sans-serif;
+  margin: 10px 0 6px;
+  color: #fff;
+}
+
+.brand span {
+  color: #d4af37;
+  margin-left: 6px;
+}
+
+.brand p,
+.form small {
+  color: #9aa3b8;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+  color: #d5d8e4;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.form input {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #161827;
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.form button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f4d675, #d4af37);
+  color: #161827;
+  cursor: pointer;
+}
+
+.error {
+  color: #ffb4a8;
+  margin: 0;
+}
+
+.icons {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.icons img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}

@@ -1,0 +1,35 @@
+.footer {
+  margin-top: 80px;
+  padding: 48px 16px 32px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.logo {
+  font-family: Outfit, sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.logo span {
+  color: var(--gold);
+  margin-left: 4px;
+}
+
+.footer p {
+  color: var(--muted);
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  color: #b7bdd4;
+  font-size: 0.9rem;
+}
+
+.footer small {
+  display: block;
+  margin-top: 24px;
+  color: #6d738c;
+}

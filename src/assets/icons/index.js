@@ -1,0 +1,11 @@
+export { default as tokenIcon } from "./token.png";
+export { default as tokensIcon } from "./tokens.png";
+export { default as coinIcon } from "./game-coin.png";
+export { default as vesIcon } from "./ves.png";
+export { default as vesStackIcon } from "./ves-stack.png";
+export { default as svesIcon } from "./sves.png";
+export { default as svesStackIcon } from "./sves-stack.png";
+export { default as gemIcon } from "./gem.png";
+export { default as gemsIcon } from "./gems.png";
+export { default as spinIcon } from "./spin.png";
+export { default as tapCoinIcon } from "./tap-coin.png";

@@ -1,0 +1,38 @@
+.scroller {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: auto;
+  padding: 8px 4px 18px;
+  scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.loader {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.coin {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f4d675, #b8922a);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}

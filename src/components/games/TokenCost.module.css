@@ -1,0 +1,14 @@
+.cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cost img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

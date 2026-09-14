@@ -1,0 +1,165 @@
+.page {
+  padding: 40px 0 20px;
+}
+
+.kicker {
+  color: var(--gold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.page h1,
+.card h2,
+.history h2 {
+  font-family: Outfit, sans-serif;
+  margin: 0 0 10px;
+}
+
+.lead {
+  max-width: 58ch;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.balance img {
+  width: 28px;
+  height: 28px;
+}
+
+.balance strong {
+  font-size: 1.4rem;
+}
+
+.balance span {
+  color: var(--muted);
+}
+
+.card {
+  height: 100%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.offerIcon {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
+}
+
+.card p {
+  color: var(--muted);
+}
+
+.rate {
+  color: var(--gold-soft) !important;
+  font-weight: 700;
+}
+
+.card button,
+.linkBtn {
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f4d675, #d4af37);
+  color: #161827;
+  cursor: pointer;
+}
+
+.card button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.card label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+.card input,
+.card select {
+  border: 1px solid var(--line);
+  background: #161827;
+  color: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.history {
+  margin-top: 36px;
+}
+
+.history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.history small {
+  color: var(--muted);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 20, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.sheet {
+  width: min(420px, 100%);
+  background: #1f2238;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.sheet button,
+.linkBtn {
+  display: inline-flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ghost {
+  background: #2a2e48 !important;
+  color: white !important;
+}
