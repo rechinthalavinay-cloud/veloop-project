@@ -4,7 +4,6 @@ import "./NutCraft.css";
 
 const COLORS = ["blue", "green", "brown", "red", "purple", "orange", "teal", "pink"];
 
-// Audio Synthesizer
 const playSound = (type, ctxRef) => {
   if (!window.AudioContext && !window.webkitAudioContext) return;
   if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,6 +48,17 @@ const playSound = (type, ctxRef) => {
     gain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.4);
     osc.start();
     osc.stop(actx.currentTime + 0.4);
+  } else if (type === "complete") {
+    osc.type = "square";
+    osc.frequency.setValueAtTime(400, actx.currentTime);
+    osc.frequency.setValueAtTime(600, actx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(800, actx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(1200, actx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(1600, actx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 1.0);
+    osc.start();
+    osc.stop(actx.currentTime + 1.0);
   }
 };
 
@@ -60,10 +70,8 @@ function pointToSegmentDist(px, py, x1, y1, x2, y2) {
   return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
 }
 
-// Generate Hardcoded Levels 1-5, then Procedural
+// Exactly 5 Hand-designed levels. No procedural generation.
 function generateLevelData(levelIdx) {
-  const W = 340;
-  const H = 400;
   let holes = [];
   let planks = [];
   let screws = [];
@@ -87,18 +95,11 @@ function generateLevelData(levelIdx) {
     targetMoves = 4; targetTime = 40;
   } else if (levelIdx === 2) {
     // Level 3: Simple Overlap (Vertical blocks horizontal)
-    holes = [ { id: 'h1', x: 100, y: 200 }, { id: 'h2', x: 240, y: 200 },
-              { id: 'h3', x: 170, y: 100 }, { id: 'h4', x: 170, y: 300 } ];
-    planks = [ { id: 'p1', h1: 'h1', h2: 'h2', color: 'brown', z: 10 },
-               { id: 'p2', h1: 'h3', h2: 'h4', color: 'purple', z: 20 } ]; // Vertical on top
-    // Vertical covers horizontal, so h3/h4 screws must be removed first to drop vertical.
-    // Wait, the vertical plank goes from (170,100) to (170,300), crossing (170,200).
-    // Let's add a screw for horizontal at (170,200) so it's directly under the vertical plank!
-    holes = [ { id: 'h1', x: 100, y: 200 }, { id: 'h2', x: 170, y: 200 }, { id: 'h3', x: 240, y: 200 }, // horizontal uses 100 and 170
+    holes = [ { id: 'h1', x: 100, y: 200 }, { id: 'h2', x: 170, y: 200 }, { id: 'h3', x: 240, y: 200 }, 
               { id: 'h4', x: 170, y: 100 }, { id: 'h5', x: 170, y: 300 } ];
     planks = [ { id: 'p1', h1: 'h1', h2: 'h2', color: 'brown', z: 10 },
                { id: 'p2', h1: 'h4', h2: 'h5', color: 'purple', z: 20 } ];
-    screws = [ { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, // s2 is under p2
+    screws = [ { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
                { id: 's4', holeId: 'h4' }, { id: 's5', holeId: 'h5' } ];
     targetMoves = 4; targetTime = 40;
   } else if (levelIdx === 3) {
@@ -117,13 +118,12 @@ function generateLevelData(levelIdx) {
     ];
     screws = holes.map((h,i) => ({ id: `s${i}`, holeId: h.id }));
     targetMoves = 8; targetTime = 50;
-  } else if (levelIdx === 4) {
+  } else if (levelIdx >= 4) { // Cap to max 4 (Level 5)
     // Level 5: Triangle Stack
     holes = [
       {id:'h1', x: 170, y: 100},
       {id:'h2', x: 100, y: 240},
       {id:'h3', x: 240, y: 240},
-      // blockers
       {id:'b1', x: 170, y: 80}, {id:'b2', x: 170, y: 260},
       {id:'c1', x: 60, y: 200}, {id:'c2', x: 280, y: 200}
     ];
@@ -131,8 +131,8 @@ function generateLevelData(levelIdx) {
       {id:'p1', h1:'h1', h2:'h2', color: 'teal', z:10},
       {id:'p2', h1:'h2', h2:'h3', color: 'teal', z:10},
       {id:'p3', h1:'h3', h2:'h1', color: 'teal', z:10},
-      {id:'p4', h1:'b1', h2:'b2', color: 'orange', z:20}, // vertical cutting through middle
-      {id:'p5', h1:'c1', h2:'c2', color: 'pink', z:30},   // horizontal cutting across
+      {id:'p4', h1:'b1', h2:'b2', color: 'orange', z:20}, 
+      {id:'p5', h1:'c1', h2:'c2', color: 'pink', z:30},   
     ];
     screws = [
       {id:'s1', holeId:'h1'}, {id:'s2', holeId:'h2'}, {id:'s3', holeId:'h3'},
@@ -140,24 +140,6 @@ function generateLevelData(levelIdx) {
       {id:'s6', holeId:'c1'}, {id:'s7', holeId:'c2'},
     ];
     targetMoves = 7; targetTime = 60;
-  } else {
-    // Procedural for 6+
-    const numPlanks = Math.min(4 + Math.floor((levelIdx-4)*0.5), 10);
-    const randPt = () => ({ x: 60 + Math.floor(Math.random()*220), y: 80 + Math.floor(Math.random()*240) });
-    
-    // Generate valid non-overlapping anchor holes for each plank
-    for(let i=0; i<numPlanks; i++) {
-       let h1, h2, attempts = 0;
-       do {
-         h1 = randPt(); h2 = randPt(); attempts++;
-       } while(Math.hypot(h1.x - h2.x, h1.y - h2.y) < 70 && attempts < 100);
-       h1.id = `h_${i}_1`; h2.id = `h_${i}_2`;
-       holes.push(h1, h2);
-       planks.push({ id: `p${i}`, h1: h1.id, h2: h2.id, color: COLORS[i%COLORS.length], z: (i+1)*10 });
-       screws.push({ id: `s_${i}_1`, holeId: h1.id }, { id: `s_${i}_2`, holeId: h2.id });
-    }
-    targetMoves = screws.length; 
-    targetTime = 40 + screws.length * 5;
   }
 
   return { holes, screws, planks, targetMoves, targetTime };
@@ -178,39 +160,34 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const [fallenPlanks, setFallenPlanks] = useState([]);
   
   // Visual Effects
-  const [animatingScrews, setAnimatingScrews] = useState([]); // {id, timeAdded}
+  const [animatingScrews, setAnimatingScrews] = useState([]);
   const [particles, setParticles] = useState([]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [hintNut, setHintNut] = useState(null);
 
+  // Stats for final screen
+  const [totalMovesUsed, setTotalMovesUsed] = useState(0);
+  const [totalTimeLeft, setTotalTimeLeft] = useState(0);
+  const [levelStars, setLevelStars] = useState([0,0,0,0,0]); // Array of 5
+
   const liveRef = useRef(true);
   const audioCtxRef = useRef(null);
   
-  // Blocking Check Logic
   const isScrewBlocked = useCallback((screwHoleId) => {
      const hole = levelData.holes.find(h => h.id === screwHoleId);
      if (!hole) return false;
      
-     // Find the screw object to see its Z depth? Actually, screws belong to planks.
-     // In this new logic, a screw just sits in a hole. What is its Z depth?
-     // It is blocked if ANY plank (that hasn't fallen) with a Z > the plank holding this screw is on top.
-     // Wait, a hole can be shared by multiple planks in some designs. 
-     // Let's just say a screw is blocked if its hole is physically underneath the body of ANY active plank that DOES NOT USE that hole.
-     
      for (const plank of levelData.planks) {
         if (fallenPlanks.includes(plank.id)) continue;
-        if (plank.h1 === hole.id || plank.h2 === hole.id) continue; // Uses the hole, so it holds the plank, doesn't block it.
+        if (plank.h1 === hole.id || plank.h2 === hole.id) continue;
         
         const ph1 = levelData.holes.find(h => h.id === plank.h1);
         const ph2 = levelData.holes.find(h => h.id === plank.h2);
         
         const dist = pointToSegmentDist(hole.x, hole.y, ph1.x, ph1.y, ph2.x, ph2.y);
-        if (dist < 18) { // Radius of plank
-           // Is it physically on top?
-           // Planks have z index. The screw sits on the planks that use it.
-           // Find max Z of planks using this screw.
+        if (dist < 18) { 
            const screwZ = Math.max(0, ...levelData.planks.filter(p => p.h1 === hole.id || p.h2 === hole.id).map(p => p.z));
-           if (plank.z > screwZ) return true; // Covered!
+           if (plank.z > screwZ) return true;
         }
      }
      return false;
@@ -237,24 +214,35 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   useEffect(() => {
     if (phase === "playing") {
       if (fallenPlanks.length === levelData.planks.length && levelData.planks.length > 0) {
-        setPhase("level_complete");
-        playSound("success", audioCtxRef);
+        if (currentLevelIdx >= 4) {
+          setPhase("game_complete");
+          playSound("complete", audioCtxRef);
+        } else {
+          setPhase("level_complete");
+          playSound("success", audioCtxRef);
+        }
+        // Save stars
+        const stars = calcStars();
+        setLevelStars(prev => {
+          const newStars = [...prev];
+          if (stars > newStars[currentLevelIdx]) newStars[currentLevelIdx] = stars;
+          return newStars;
+        });
+        setTotalMovesUsed(prev => prev + (levelData.targetMoves - movesLeft));
+        setTotalTimeLeft(prev => prev + time);
       } else if (movesLeft <= 0 && animatingScrews.length === 0) {
-        // Only fail if moves run out and we aren't waiting for a plank to fall
-        // Wait, planks fall immediately. If moves run out, check if planks are still falling.
-        // We'll give it a tiny delay to be safe.
         const t = setTimeout(() => {
            if (fallenPlanks.length < levelData.planks.length) setPhase("failed");
         }, 1000);
         return () => clearTimeout(t);
       }
     }
-  }, [fallenPlanks, phase, movesLeft, levelData.planks.length, animatingScrews.length]);
+  }, [fallenPlanks, phase, movesLeft, levelData.planks.length, animatingScrews.length, currentLevelIdx, time, levelData.targetMoves]);
 
-  const handleNextLevel = () => {
-    const nextIdx = currentLevelIdx + 1;
-    setCurrentLevelIdx(nextIdx);
-    const nextData = generateLevelData(nextIdx);
+  const loadLevel = (idx) => {
+    if (idx > 4) return;
+    setCurrentLevelIdx(idx);
+    const nextData = generateLevelData(idx);
     setLevelData(nextData);
     setScrews(nextData.screws);
     setFallenPlanks([]);
@@ -265,19 +253,22 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     setPhase("playing");
   };
 
+  const handleNextLevel = () => {
+    if (currentLevelIdx >= 4) return;
+    loadLevel(currentLevelIdx + 1);
+  };
+
   const handleRetry = () => {
-    setLevelData(generateLevelData(currentLevelIdx)); // Refresh just in case
-    setScrews(levelData.screws);
-    setFallenPlanks([]);
-    setTime(levelData.targetTime);
-    setMovesLeft(levelData.targetMoves);
-    setAnimatingScrews([]);
-    setHintNut(null);
-    setPhase("playing");
+    loadLevel(currentLevelIdx);
+  };
+
+  const handlePlayAgain = () => {
+    setTotalMovesUsed(0);
+    setTotalTimeLeft(0);
+    loadLevel(0);
   };
 
   const handleHint = () => {
-    // Find a screw that is NOT blocked and belongs to an un-fallen plank
     const validScrews = screws.filter(s => {
        if (animatingScrews.some(a => a.id === s.id)) return false;
        if (isScrewBlocked(s.holeId)) return false;
@@ -298,15 +289,13 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
     if (isScrewBlocked(screw.holeId)) {
        playSound("error", audioCtxRef);
-       return; // Blocked!
+       return; 
     }
 
-    // Success - Unscrew
     playSound("unscrew", audioCtxRef);
     setAnimatingScrews(prev => [...prev, { id: screwId, timeAdded: Date.now() }]);
     setMovesLeft(m => Math.max(0, m - 1));
     
-    // Remove the screw physically after animation (400ms)
     setTimeout(() => {
        setScrews(prev => prev.filter(s => s.id !== screwId));
        setAnimatingScrews(prev => prev.filter(s => s.id !== screwId));
@@ -350,12 +339,43 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     });
   };
 
-  // Calc Stars
   const calcStars = () => {
     if (movesLeft >= levelData.targetMoves * 0.2 && time >= levelData.targetTime * 0.3) return 3;
     if (movesLeft >= 0 && time >= levelData.targetTime * 0.1) return 2;
     return 1;
   };
+
+  if (phase === "level_select") {
+    return (
+      <GameShell 
+        title="Nut Craft" 
+        score={score} 
+        lives={lives} 
+        phase="playing"
+        onRestart={() => setPhase("playing")}
+      >
+        <div className="nc-modal" style={{background: 'rgba(20, 15, 10, 1)'}}>
+          <h1 style={{fontSize: 28, marginBottom: 20}}>NUTCRAFT LEVELS</h1>
+          <div style={{display:'flex', flexDirection:'column', gap: 12, width: '80%'}}>
+            {[1,2,3,4,5].map((lvl, idx) => (
+              <button 
+                key={lvl} 
+                className="nc-modal-btn" 
+                onClick={() => loadLevel(idx)}
+                style={{display:'flex', justifyContent:'space-between', padding: '16px 24px', background: '#3e2723', border: '1px solid #5d4037'}}
+              >
+                <span>LEVEL {lvl}</span>
+                <span>{"⭐".repeat(levelStars[idx])}</span>
+              </button>
+            ))}
+          </div>
+          <button className="nc-modal-btn" onClick={() => loadLevel(0)} style={{marginTop: 32, width:'80%', background: '#ff9800', border: '1px solid #e65100'}}>
+            BACK
+          </button>
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell 
@@ -364,7 +384,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       lives={lives} 
       time={time} 
       level={currentLevelIdx + 1}
-      phase={phase === "level_complete" || phase === "failed" ? "playing" : phase} 
+      phase={phase === "level_complete" || phase === "failed" || phase === "game_complete" ? "playing" : phase} 
       extraHud={<span className="hudMoves">Moves: {movesLeft}</span>}
       onPause={() => setPhase(p => p === "paused" ? "playing" : "paused")} 
       onResume={() => setPhase("playing")} 
@@ -396,6 +416,30 @@ export function NutCraft({ onOutcome, reviveSignal }) {
             <button className="nc-modal-btn" onClick={handleNextLevel}>
               NEXT LEVEL
             </button>
+          </div>
+        )}
+
+        {/* Final Game Complete Modal */}
+        {phase === "game_complete" && (
+          <div className="nc-modal" style={{background: 'rgba(20, 15, 10, 0.95)'}}>
+            <h1 style={{fontSize: 28, textAlign: 'center'}}>YOU COMPLETED<br/>NUTCRAFT!</h1>
+            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>ALL 5 LEVELS CLEARED</p>
+            <div className="nc-stars" style={{marginBottom: 16}}>
+               {"⭐".repeat(calcStars())}
+            </div>
+            <div className="nc-modal-stats" style={{fontSize: 16, marginBottom: 24}}>
+              Total Score: {score + (totalTimeLeft * 2)}<br/>
+              Total Moves Used: {totalMovesUsed}<br/>
+              Best Time Combined: {totalTimeLeft}s
+            </div>
+            <div style={{display:'flex', gap: 12, flexDirection: 'column', width: '80%'}}>
+              <button className="nc-modal-btn" onClick={handlePlayAgain} style={{padding: '12px 16px', background: '#4caf50'}}>
+                PLAY AGAIN
+              </button>
+              <button className="nc-modal-btn" onClick={() => setPhase("level_select")} style={{padding: '12px 16px', background: '#1976d2', border: '1px solid #1565c0'}}>
+                LEVEL SELECT
+              </button>
+            </div>
           </div>
         )}
         
@@ -504,7 +548,6 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   useEffect(() => {
     if (!hasS1 && !hasS2 && !isFallen && !shaking) {
       setShaking(true);
-      // Pre-fall shake delay
       setTimeout(() => {
         onFall(plank.id, anchorHole.x, anchorHole.y);
         setShaking(false);
@@ -521,14 +564,12 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   if (hasS1 && hasS2) {
     targetAngle = baseAngle;
   } else {
-    // Swinging naturally down
     targetAngle = isH1 ? 90 : -90;
     if (Math.abs(targetAngle - baseAngle) > 180) {
        targetAngle = targetAngle > baseAngle ? targetAngle - 360 : targetAngle + 360;
     }
   }
 
-  // Shake effect before falling
   let shakeTransform = "";
   if (shaking) {
     shakeTransform = `translate(${(Math.random()-0.5)*6}px, ${(Math.random()-0.5)*6}px) `;
