@@ -183,23 +183,38 @@
     height: 0;
     overflow: hidden;
     flex-direction: column;
-    align-items: flex-start;
-    background: var(--bg-surface);
+    align-items: center;
+    justify-content: flex-start;
+    background: rgba(10, 10, 15, 0.98);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     border-bottom: var(--border-subtle);
     gap: 0;
-    transition: height 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 999;
   }
   
   .mobileOpen {
     height: calc(100vh - 80px);
-    padding: 24px 40px;
+    padding: 40px 24px;
   }
   
   .navLink {
-    font-size: 1.2rem;
-    padding: 16px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    padding: 24px 0;
     width: 100%;
+    text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+  }
+
+  .mobileOpen .navLink {
+    opacity: 1;
+    transform: translateY(0);
   }
   
   .navLink:last-child {
