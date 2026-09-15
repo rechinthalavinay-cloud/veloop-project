@@ -171,6 +171,11 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    background: #07070A;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   .menuToggle {
     display: block;
   }
