@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { GameShell } from "./GameShell";
 import "./NutCraft.css";
 
-// Keeps the exact sounds requested by user
 const playSound = (type, ctxRef) => {
   if (!window.AudioContext && !window.webkitAudioContext) return;
   if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -77,90 +76,80 @@ function generateLevelData(levelIdx) {
   let targetTime = 60;
 
   if (levelIdx === 0) {
-    // Level 1: Tutorial
+    // Level 1: 2 planks, 4 screws
     holes = [ { id: 'h1', x: 100, y: 150 }, { id: 'h2', x: 240, y: 150 }, { id: 'h3', x: 100, y: 250 }, { id: 'h4', x: 240, y: 250 } ];
     planks = [ { id: 'p1', h1: 'h1', h2: 'h2', z: 10 }, { id: 'p2', h1: 'h3', h2: 'h4', z: 10 } ];
     screws = [ { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' } ];
     targetMoves = 6; targetTime = 40;
   } else if (levelIdx === 1) {
-    // Level 2: Overlap
+    // Level 2: 3 planks, 6 screws
     holes = [ { id: 'h1', x: 80, y: 100 }, { id: 'h2', x: 200, y: 100 },
               { id: 'h3', x: 140, y: 150 }, { id: 'h4', x: 260, y: 150 },
               { id: 'h5', x: 80, y: 200 }, { id: 'h6', x: 200, y: 200 } ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 }, 
       { id: 'p3', h1: 'h5', h2: 'h6', z: 10 },
-      { id: 'p2', h1: 'h3', h2: 'h4', z: 20 }
+      { id: 'p2', h1: 'h3', h2: 'h4', z: 20 } // overlaps
     ];
     screws = [ { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' },
                { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
                { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' } ];
     targetMoves = 8; targetTime = 50;
   } else if (levelIdx === 2) {
-    // Level 3: Blocked Nut
-    holes = [ { id: 'h1', x: 100, y: 170 }, { id: 'h2', x: 170, y: 170 }, { id: 'h3', x: 240, y: 170 }, 
-              { id: 'h4', x: 170, y: 100 }, { id: 'h5', x: 170, y: 240 },
-              { id: 'h6', x: 240, y: 240 }, { id: 'h7', x: 100, y: 100 } ];
-    planks = [ { id: 'p1', h1: 'h1', h2: 'h3', z: 10 },
-               { id: 'p2', h1: 'h4', h2: 'h5', z: 20 },
-               { id: 'p3', h1: 'h2', h2: 'h7', z: 30 } ]; 
-    // p3 overlaps h2? h2 is (170,170). p3 is (170,170) to (100,100). Yes. 
-    // wait p3 uses h2, so it holds it. The plank underneath (p1, p2) is blocked if it needs h2. 
-    // They all share h2? That's too complex. 
-    // Let's use separate holes that are physically under other planks.
-    holes = [ { id: 'h1', x: 80, y: 200 }, { id: 'h2', x: 260, y: 200 }, // p1
-              { id: 'h3', x: 170, y: 80 }, { id: 'h4', x: 170, y: 320 }, // p2 (vertical, crosses p1)
-              { id: 'h5', x: 80, y: 80 }, { id: 'h6', x: 260, y: 320 } ]; // p3 (diagonal)
+    // Level 3: 4 planks, 8 screws, blocked screw (p4 blocks p1's left screw)
+    holes = [ { id: 'h1', x: 120, y: 200 }, { id: 'h2', x: 260, y: 200 }, // p1
+              { id: 'h3', x: 170, y: 80 }, { id: 'h4', x: 170, y: 320 }, // p2 (vertical)
+              { id: 'h5', x: 80, y: 80 }, { id: 'h6', x: 260, y: 320 }, // p3 (diagonal)
+              { id: 'h7', x: 120, y: 100 }, { id: 'h8', x: 120, y: 280 } ]; // p4 (vertical, covers h1)
     planks = [ { id: 'p1', h1: 'h1', h2: 'h2', z: 10 },
                { id: 'p2', h1: 'h3', h2: 'h4', z: 20 },
-               { id: 'p3', h1: 'h5', h2: 'h6', z: 30 } ];
+               { id: 'p3', h1: 'h5', h2: 'h6', z: 30 },
+               { id: 'p4', h1: 'h7', h2: 'h8', z: 40 } ];
     screws = [ { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
                { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-               { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' } ];
-    // We add a screw AT (170, 200) for p1, so p2 blocks it.
-    holes.push({id: 'h1b', x: 170, y: 200});
-    planks[0].h2 = 'h1b'; 
-    planks.push({ id: 'p1_2', h1: 'h1b', h2: 'h2', z: 10 });
-    screws.push({id: 's1b', holeId: 'h1b'});
+               { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
+               { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' } ];
     targetMoves = 10; targetTime = 60;
   } else if (levelIdx === 3) {
-    // Level 4: Crossing Planks (Hashtag shape)
+    // Level 4: 5 planks, 10 screws, crossing planks, chain reaction
     holes = [
       {id:'h1',x:100,y:100}, {id:'h2',x:240,y:100},
       {id:'h3',x:100,y:240}, {id:'h4',x:240,y:240},
       {id:'v1',x:130,y:70}, {id:'v2',x:130,y:270},
       {id:'v3',x:210,y:70}, {id:'v4',x:210,y:270},
+      {id:'c1',x:170,y:140}, {id:'c2',x:170,y:300} 
     ];
     planks = [
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 },
       { id: 'p2', h1: 'h3', h2: 'h4', z: 10 },
       { id: 'p3', h1: 'v1', h2: 'v2', z: 20 },
-      { id: 'p4', h1: 'v3', h2: 'v4', z: 30 },
+      { id: 'p4', h1: 'v3', h2: 'v4', z: 20 },
+      // p5 drops and hits p2, shifting p2 to reveal something? 
+      // Actually p5 is above p2. If p5 falls, it shifts p2.
+      { id: 'p5', h1: 'c1', h2: 'c2', z: 30, chainTarget: 'p2' }
     ];
     screws = holes.map((h,i) => ({ id: `s${i}`, holeId: h.id }));
-    targetMoves = 10; targetTime = 60;
+    targetMoves = 12; targetTime = 70;
   } else if (levelIdx >= 4) { 
-    // Level 5: Triangle Stack
+    // Level 5: 6 planks, 12 screws, chain reaction
     holes = [
-      {id:'h1', x: 170, y: 100},
-      {id:'h2', x: 100, y: 240},
-      {id:'h3', x: 240, y: 240},
-      {id:'b1', x: 170, y: 80}, {id:'b2', x: 170, y: 260},
-      {id:'c1', x: 60, y: 200}, {id:'c2', x: 280, y: 200}
+      {id:'h1', x: 170, y: 100}, {id:'h2', x: 100, y: 240}, 
+      {id:'h3', x: 240, y: 240}, {id:'h4', x: 170, y: 240},
+      {id:'b1', x: 170, y: 60}, {id:'b2', x: 170, y: 180},
+      {id:'c1', x: 60, y: 200}, {id:'c2', x: 280, y: 200},
+      {id:'d1', x: 100, y: 100}, {id:'d2', x: 100, y: 300},
+      {id:'e1', x: 240, y: 100}, {id:'e2', x: 240, y: 300}
     ];
     planks = [
       {id:'p1', h1:'h1', h2:'h2', z:10},
       {id:'p2', h1:'h2', h2:'h3', z:10},
       {id:'p3', h1:'h3', h2:'h1', z:10},
-      {id:'p4', h1:'b1', h2:'b2', z:20}, 
+      {id:'p4', h1:'b1', h2:'b2', z:20, chainTarget: 'p2'}, // drops onto p2, shifting it
       {id:'p5', h1:'c1', h2:'c2', z:30},   
+      {id:'p6', h1:'d1', h2:'d2', z:40},   
     ];
-    screws = [
-      {id:'s1', holeId:'h1'}, {id:'s2', holeId:'h2'}, {id:'s3', holeId:'h3'},
-      {id:'s4', holeId:'b1'}, {id:'s5', holeId:'b2'},
-      {id:'s6', holeId:'c1'}, {id:'s7', holeId:'c2'},
-    ];
-    targetMoves = 10; targetTime = 70;
+    screws = holes.map((h,i) => ({ id: `s${i}`, holeId: h.id }));
+    targetMoves = 16; targetTime = 80;
   }
 
   return { holes, screws, planks, targetMoves, targetTime };
@@ -179,10 +168,10 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   // Game State
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
+  const [shiftedPlanks, setShiftedPlanks] = useState([]);
   
   // Visual Effects
   const [animatingScrews, setAnimatingScrews] = useState([]);
-  const [particles, setParticles] = useState([]);
 
   // Stats for final screen
   const [totalMovesUsed, setTotalMovesUsed] = useState(0);
@@ -203,14 +192,21 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         const ph1 = levelData.holes.find(h => h.id === plank.h1);
         const ph2 = levelData.holes.find(h => h.id === plank.h2);
         
-        const dist = pointToSegmentDist(hole.x, hole.y, ph1.x, ph1.y, ph2.x, ph2.y);
-        if (dist < 20) { // Plank width
+        // If plank is shifted, adjust its effective physical location
+        let px1 = ph1.x; let py1 = ph1.y;
+        let px2 = ph2.x; let py2 = ph2.y;
+        if (shiftedPlanks.includes(plank.id)) {
+           py1 += 40; py2 += 40;
+        }
+
+        const dist = pointToSegmentDist(hole.x, hole.y, px1, py1, px2, py2);
+        if (dist < 20) { 
            const screwZ = Math.max(0, ...levelData.planks.filter(p => p.h1 === hole.id || p.h2 === hole.id).map(p => p.z));
            if (plank.z > screwZ) return true;
         }
      }
      return false;
-  }, [levelData, fallenPlanks]);
+  }, [levelData, fallenPlanks, shiftedPlanks]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -262,6 +258,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     setLevelData(nextData);
     setScrews(nextData.screws);
     setFallenPlanks([]);
+    setShiftedPlanks([]);
     setTime(nextData.targetTime);
     setMovesLeft(nextData.targetMoves);
     setAnimatingScrews([]);
@@ -287,18 +284,24 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     setAnimatingScrews(prev => [...prev, { id: screwId, timeAdded: Date.now() }]);
     setMovesLeft(m => Math.max(0, m - 1));
     
-    // Physical unscrew animation takes longer now (600ms)
     setTimeout(() => {
        setScrews(prev => prev.filter(s => s.id !== screwId));
        setAnimatingScrews(prev => prev.filter(s => s.id !== screwId));
     }, 600);
   };
 
-  const handlePlankFall = (plankId) => {
+  const handlePlankFall = (plankId, chainTarget) => {
     setFallenPlanks(prev => {
       if (prev.includes(plankId)) return prev;
       playSound("drop", audioCtxRef);
       setScore(s => s + 10);
+      
+      if (chainTarget) {
+         setTimeout(() => {
+            setShiftedPlanks(sp => [...sp, chainTarget]);
+            playSound("drop", audioCtxRef); // Clunk sound for shift
+         }, 300);
+      }
       return [...prev, plankId];
     });
   };
@@ -399,6 +402,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
               holes={levelData.holes} 
               screws={screws} 
               fallen={fallenPlanks} 
+              shifted={shiftedPlanks}
               onFall={handlePlankFall}
             />
           );
@@ -431,7 +435,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   );
 }
 
-function Plank({ plank, holes, screws, fallen, onFall }) {
+function Plank({ plank, holes, screws, fallen, shifted, onFall }) {
   const p1 = holes.find(h => h.id === plank.h1);
   const p2 = holes.find(h => h.id === plank.h2);
   
@@ -449,6 +453,7 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   const hasS2 = hasS2_current && !detached2.current;
 
   const isFallen = fallen.includes(plank.id);
+  const isShifted = shifted.includes(plank.id);
 
   const anchorRef = useRef(plank.h1);
   if (hasS1 && !hasS2) anchorRef.current = plank.h1;
@@ -465,7 +470,7 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
     if (fullyDetached && !isFallen && !shaking) {
       setShaking(true);
       setTimeout(() => {
-        onFall(plank.id);
+        onFall(plank.id, plank.chainTarget);
         setShaking(false);
       }, 200);
     }
@@ -490,6 +495,9 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   }
 
   let wrapperTransform = isFallen ? `translateY(600px) ` : shakeTransform;
+  if (isShifted && !isFallen) {
+    wrapperTransform = `translateY(40px) `; // Chain reaction shift
+  }
 
   wrapperTransform += `rotate(${targetAngle}deg)`;
   if (isFallen) {
@@ -502,7 +510,7 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
       left: anchorHole.x, 
       top: anchorHole.y,
       transform: wrapperTransform,
-      transition: isStable && !shaking ? 'none' : 'transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.5s ease-in',
+      transition: isStable && !shaking && !isShifted ? 'none' : 'transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.5s ease-in',
       zIndex: plank.z,
     }}>
       <div className="plank" style={{
