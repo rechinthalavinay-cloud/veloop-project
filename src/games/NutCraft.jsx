@@ -3,7 +3,7 @@ import Matter from "matter-js";
 import { GameShell } from "./GameShell";
 import "./NutCraft.css";
 
-const { Engine, World, Bodies, Constraint, Composite, Body } = Matter;
+const { Engine, World, Bodies, Constraint, Body } = Matter;
 
 const playSound = (type, ctxRef) => {
   if (!window.AudioContext && !window.webkitAudioContext) return;
@@ -103,12 +103,13 @@ function generateLevelData(levelIdx) {
                { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' } ];
     targetTime = 50;
   } else if (levelIdx === 2) {
+    // Level 3: Interlocking criss-cross
     holes = [ 
-      { id: 'h1', x: 120, y: 200 }, { id: 'h2', x: 260, y: 200 },
-      { id: 'h3', x: 170, y: 80 }, { id: 'h4', x: 170, y: 320 },
-      { id: 'h5', x: 80, y: 80 }, { id: 'h6', x: 260, y: 320 },
-      { id: 'h7', x: 120, y: 100 }, { id: 'h8', x: 120, y: 280 },
-      { id: 'e1', x: 60, y: 200 }, { id: 'e2', x: 220, y: 80 }, { id: 'e3', x: 220, y: 280 }
+      { id: 'h1', x: 100, y: 100 }, { id: 'h2', x: 240, y: 240 }, // diagonal 1
+      { id: 'h3', x: 240, y: 100 }, { id: 'h4', x: 100, y: 240 }, // diagonal 2
+      { id: 'h5', x: 170, y: 60 }, { id: 'h6', x: 170, y: 280 },  // vertical
+      { id: 'h7', x: 60, y: 170 }, { id: 'h8', x: 280, y: 170 },  // horizontal
+      { id: 'e1', x: 170, y: 170 }, { id: 'e2', x: 100, y: 170 }  // limited empty
     ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 },
@@ -120,57 +121,60 @@ function generateLevelData(levelIdx) {
                { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
                { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
                { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' } ];
-    targetTime = 60;
-  } else if (levelIdx === 3) {
-    holes = [
-      {id:'h1',x:100,y:100}, {id:'h2',x:240,y:100},
-      {id:'h3',x:100,y:240}, {id:'h4',x:240,y:240},
-      {id:'v1',x:130,y:70}, {id:'v2',x:130,y:270},
-      {id:'v3',x:210,y:70}, {id:'v4',x:210,y:270},
-      {id:'c1',x:170,y:140}, {id:'c2',x:170,y:300},
-      {id:'e1',x:60,y:170}, {id:'e2',x:280,y:170}, {id:'e3',x:170,y:200}
-    ];
-    planks = [
-      { id: 'p1', h1: 'h1', h2: 'h2', z: 10 },
-      { id: 'p2', h1: 'h3', h2: 'h4', z: 10 },
-      { id: 'p3', h1: 'v1', h2: 'v2', z: 20 },
-      { id: 'p4', h1: 'v3', h2: 'v4', z: 20 },
-      { id: 'p5', h1: 'c1', h2: 'c2', z: 30 }
-    ];
-    screws = [
-      { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
-      { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-      { id: 's5', holeId: 'v1' }, { id: 's6', holeId: 'v2' },
-      { id: 's7', holeId: 'v3' }, { id: 's8', holeId: 'v4' },
-      { id: 's9', holeId: 'c1' }, { id: 's10', holeId: 'c2' }
-    ];
     targetTime = 70;
-  } else if (levelIdx >= 4) { 
+  } else if (levelIdx === 3) {
+    // Level 4: Dense Hashtag
     holes = [
-      {id:'h1', x: 170, y: 100}, {id:'h2', x: 100, y: 240}, 
-      {id:'h3', x: 240, y: 240}, {id:'h4', x: 170, y: 240},
-      {id:'b1', x: 170, y: 60}, {id:'b2', x: 170, y: 180},
-      {id:'c1', x: 60, y: 200}, {id:'c2', x: 280, y: 200},
-      {id:'d1', x: 100, y: 100}, {id:'d2', x: 100, y: 300},
-      {id:'e1', x: 240, y: 100}, {id:'e2', x: 240, y: 300},
-      {id:'f1', x: 170, y: 320}, {id:'f2', x: 60, y: 100}, {id:'f3', x: 280, y: 100}, {id:'f4', x: 170, y: 380}
+      {id:'v1a',x:120,y:80}, {id:'v1b',x:120,y:280}, // vertical 1
+      {id:'v2a',x:220,y:80}, {id:'v2b',x:220,y:280}, // vertical 2
+      {id:'h1a',x:70,y:140}, {id:'h1b',x:270,y:140}, // horizontal 1
+      {id:'h2a',x:70,y:220}, {id:'h2b',x:270,y:220}, // horizontal 2
+      {id:'d1a',x:80,y:80},  {id:'d1b',x:260,y:280}, // diagonal 
+      {id:'e1',x:170,y:80}, {id:'e2',x:170,y:280}, {id:'e3',x:170,y:180} // 3 empty
     ];
     planks = [
-      {id:'p1', h1:'h1', h2:'h2', z:10},
-      {id:'p2', h1:'h2', h2:'h3', z:10},
-      {id:'p3', h1:'h3', h2:'h1', z:10},
-      {id:'p4', h1:'b1', h2:'b2', z:20}, 
-      {id:'p5', h1:'c1', h2:'c2', z:30},   
-      {id:'p6', h1:'d1', h2:'d2', z:40},   
+      { id: 'p1', h1: 'v1a', h2: 'v1b', z: 10 },
+      { id: 'p2', h1: 'v2a', h2: 'v2b', z: 10 },
+      { id: 'p3', h1: 'h1a', h2: 'h1b', z: 20 },
+      { id: 'p4', h1: 'h2a', h2: 'h2b', z: 20 },
+      { id: 'p5', h1: 'd1a', h2: 'd1b', z: 30 }
     ];
     screws = [
-      { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, { id: 's3', holeId: 'h3' },
-      { id: 's4', holeId: 'b1' }, { id: 's5', holeId: 'b2' },
-      { id: 's6', holeId: 'c1' }, { id: 's7', holeId: 'c2' },
-      { id: 's8', holeId: 'd1' }, { id: 's9', holeId: 'd2' },
-      { id: 's10', holeId: 'e1' }, { id: 's11', holeId: 'e2' }, { id: 's12', holeId: 'h4' }
+      { id: 's1', holeId: 'v1a' }, { id: 's2', holeId: 'v1b' }, 
+      { id: 's3', holeId: 'v2a' }, { id: 's4', holeId: 'v2b' },
+      { id: 's5', holeId: 'h1a' }, { id: 's6', holeId: 'h1b' },
+      { id: 's7', holeId: 'h2a' }, { id: 's8', holeId: 'h2b' },
+      { id: 's9', holeId: 'd1a' }, { id: 's10', holeId: 'd1b' }
     ];
     targetTime = 90;
+  } else if (levelIdx >= 4) { 
+    // Level 5: Expert Web
+    holes = [
+      {id:'a1',x:60,y:100}, {id:'a2',x:280,y:100},
+      {id:'b1',x:60,y:200}, {id:'b2',x:280,y:200},
+      {id:'c1',x:60,y:300}, {id:'c2',x:280,y:300},
+      {id:'d1',x:120,y:60}, {id:'d2',x:120,y:340},
+      {id:'e1',x:220,y:60}, {id:'e2',x:220,y:340},
+      {id:'f1',x:170,y:60}, {id:'f2',x:170,y:340},
+      {id:'x1',x:170,y:200}, {id:'x2',x:170,y:100}, {id:'x3',x:170,y:300} // only 3 empty
+    ];
+    planks = [
+      {id:'p1', h1:'a1', h2:'a2', z:10},
+      {id:'p2', h1:'b1', h2:'b2', z:10},
+      {id:'p3', h1:'c1', h2:'c2', z:10},
+      {id:'p4', h1:'d1', h2:'d2', z:20}, 
+      {id:'p5', h1:'e1', h2:'e2', z:20},   
+      {id:'p6', h1:'f1', h2:'f2', z:30},   
+    ];
+    screws = [
+      { id: 's1', holeId: 'a1' }, { id: 's2', holeId: 'a2' },
+      { id: 's3', holeId: 'b1' }, { id: 's4', holeId: 'b2' },
+      { id: 's5', holeId: 'c1' }, { id: 's6', holeId: 'c2' },
+      { id: 's7', holeId: 'd1' }, { id: 's8', holeId: 'd2' },
+      { id: 's9', holeId: 'e1' }, { id: 's10', holeId: 'e2' },
+      { id: 's11', holeId: 'f1' }, { id: 's12', holeId: 'f2' }
+    ];
+    targetTime = 120;
   }
 
   return { holes, screws, planks, targetTime };
@@ -188,7 +192,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
   const [selectedScrew, setSelectedScrew] = useState(null);
-  const [plankStates, setPlankStates] = useState({}); // Syncs from Matter.js
   
   const [totalTimeLeft, setTotalTimeLeft] = useState(0);
   const [levelStars, setLevelStars] = useState([0,0,0,0,0]);
@@ -201,6 +204,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const plankBodiesRef = useRef({});
   const constraintsRef = useRef({});
   const rafRef = useRef(null);
+  const plankDOMRefs = useRef({}); // Directly modify DOM to bypass React render lag
 
   // Initialize Physics World
   const initPhysics = useCallback((data, initialScrews) => {
@@ -214,8 +218,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     plankBodiesRef.current = {};
     constraintsRef.current = {};
     
-    const collisionGroups = Body.nextGroup(true); // they should collide
-
     data.planks.forEach(plank => {
         const h1 = data.holes.find(h => h.id === plank.h1);
         const h2 = data.holes.find(h => h.id === plank.h2);
@@ -227,13 +229,19 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         const length = Math.hypot(dx, dy);
         const angle = Math.atan2(dy, dx);
 
+        // Assign collision category based on Z index so layers don't explode each other
+        const cat = 1 << Math.floor(plank.z / 10);
+
         const body = Bodies.rectangle(cx, cy, length + 36, 30, {
             angle: angle,
             frictionAir: 0.05,
             friction: 0.5,
-            restitution: 0.2, // slight bounce
+            restitution: 0.2,
             density: 0.05,
-            collisionFilter: { group: 1 } // All planks collide with each other
+            collisionFilter: {
+                category: cat,
+                mask: cat // only collide with planks in the same Z layer!
+            }
         });
         
         plankBodiesRef.current[plank.id] = body;
@@ -247,7 +255,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       const engine = engineRef.current;
       if (!engine) return;
 
-      // Remove all existing constraints
       Object.values(constraintsRef.current).forEach(c => World.remove(engine.world, c));
       constraintsRef.current = {};
 
@@ -259,22 +266,17 @@ export function NutCraft({ onOutcome, reviveSignal }) {
               const h1 = data.holes.find(h => h.id === plank.h1);
               const h2 = data.holes.find(h => h.id === plank.h2);
               
-              // If the screw is in one of the plank's original anchor holes
               if (plank.h1 === hole.id || plank.h2 === hole.id) {
                   const body = plankBodiesRef.current[plank.id];
                   if (!body) return;
                   
-                  // Calculate local anchor point
-                  // Original cx, cy
                   const cx = (h1.x + h2.x) / 2;
                   const cy = (h1.y + h2.y) / 2;
                   const angle = Math.atan2(h2.y - h1.y, h2.x - h1.x);
                   
-                  // Vector from center to hole
                   const vx = hole.x - cx;
                   const vy = hole.y - cy;
                   
-                  // Rotate vector by -angle to get local coordinates
                   const localX = vx * Math.cos(-angle) - vy * Math.sin(-angle);
                   const localY = vx * Math.sin(-angle) + vy * Math.cos(-angle);
 
@@ -292,7 +294,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       });
   }, [fallenPlanks]);
 
-  // Game Loop
+  // High Performance Physics Loop (No React setState)
   useEffect(() => {
       if (phase !== "playing") return;
       let lastTime = performance.now();
@@ -304,23 +306,22 @@ export function NutCraft({ onOutcome, reviveSignal }) {
           if (engineRef.current && phase === "playing") {
               Engine.update(engineRef.current, 1000 / 60);
 
-              const states = {};
               Object.keys(plankBodiesRef.current).forEach(id => {
                   if (!fallenPlanks.includes(id)) {
                       const body = plankBodiesRef.current[id];
-                      states[id] = {
-                          x: body.position.x,
-                          y: body.position.y,
-                          angle: body.angle
-                      };
+                      const node = plankDOMRefs.current[id];
+                      
+                      if (node) {
+                          node.style.left = `${body.position.x}px`;
+                          node.style.top = `${body.position.y}px`;
+                          node.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`;
+                      }
 
-                      // Check if it fell off screen
                       if (body.position.y > 600) {
                           handlePlankFall(id);
                       }
                   }
               });
-              setPlankStates(states);
           }
           rafRef.current = requestAnimationFrame(loop);
       };
@@ -395,15 +396,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       const hole = levelData.holes.find(h => h.id === holeId);
       if (!hole) return false;
 
-      // Check Matter.js bodies directly for overlap
-      // We can use Matter.Query.point to see if any plank overlaps the hole center
       const bodies = Object.values(plankBodiesRef.current);
       const overlapping = Matter.Query.point(bodies, { x: hole.x, y: hole.y });
-      
-      // If a body overlaps, is it a plank that is actually supposed to be mounted there?
-      // Wait, in real physics, if a plank is swinging and overlaps a hole, it blocks it.
-      // If it overlaps, check if it's the highest Z plank?
-      // Matter.Query.point returns all bodies overlapping.
       
       for (const body of overlapping) {
           const plankId = Object.keys(plankBodiesRef.current).find(k => plankBodiesRef.current[k] === body);
@@ -411,15 +405,10 @@ export function NutCraft({ onOutcome, reviveSignal }) {
              const plank = levelData.planks.find(p => p.id === plankId);
              if (fallenPlanks.includes(plankId)) continue;
              
-             // If this plank is currently mounted to this hole (it has a screw here), it doesn't "block" it from selection
-             // Actually, if we are clicking an EMPTY hole, and a plank covers it, it's blocked.
              if (plank.h1 === hole.id || plank.h2 === hole.id) {
-                 // It's its native hole. If it has a screw, it's not empty anyway. 
-                 // If it's empty, and the plank still covers it, you CAN place a screw there to re-mount it!
-                 // Wait! In the real game, if a plank is swinging over its original hole, you can screw it back in.
                  continue; 
              } else {
-                 return true; // Another plank swung over this hole!
+                 return true; 
              }
           }
       }
@@ -432,19 +421,16 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     const screw = screws.find(s => s.id === screwId);
     if (!screw) return;
 
-    // To check if a screw is blocked, we check if a plank with a higher Z-index covers it
     const hole = levelData.holes.find(h => h.id === screw.holeId);
     const overlapping = Matter.Query.point(Object.values(plankBodiesRef.current), { x: hole.x, y: hole.y });
     let blocked = false;
     
-    // Find native plank Z
     const nativeZ = Math.max(0, ...levelData.planks.filter(p => (p.h1 === hole.id || p.h2 === hole.id)).map(p => p.z));
 
     for (const body of overlapping) {
         const plankId = Object.keys(plankBodiesRef.current).find(k => plankBodiesRef.current[k] === body);
         const plank = levelData.planks.find(p => p.id === plankId);
         if (plank && plank.h1 !== hole.id && plank.h2 !== hole.id) {
-            // A foreign plank overlaps this screw
             if (plank.z > nativeZ) blocked = true;
         }
     }
@@ -498,7 +484,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   };
 
   if (phase === "level_select") {
-    // ... [Same level select code]
     return (
       <GameShell title="Nut Craft" score={score} lives={lives} phase="playing" onRestart={() => setPhase("playing")}>
         <div className="nc-modal" style={{background: 'rgba(20, 15, 10, 1)'}}>
@@ -565,25 +550,31 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
         {levelData.planks.map(plank => {
           if (fallenPlanks.includes(plank.id)) return null;
-          const state = plankStates[plank.id];
-          if (!state) return null; // wait for first physics tick
 
           const h1 = levelData.holes.find(h => h.id === plank.h1);
           const h2 = levelData.holes.find(h => h.id === plank.h2);
           const length = Math.hypot(h2.x - h1.x, h2.y - h1.y);
 
-          // The DOM element's anchor is its center, because we translate(-50%, -50%)
+          // Initial placement is handled by ref in loop, but we provide initial styles to avoid flash
+          const cx = (h1.x + h2.x) / 2;
+          const cy = (h1.y + h2.y) / 2;
+          const angle = Math.atan2(h2.y - h1.y, h2.x - h1.x);
+
           return (
-            <div key={`plank-${plank.id}`} style={{
-              position: 'absolute',
-              left: state.x,
-              top: state.y,
-              transform: `translate(-50%, -50%) rotate(${state.angle}rad)`,
-              width: length + 36,
-              height: 36,
-              zIndex: plank.z,
-              pointerEvents: 'none'
-            }}>
+            <div 
+              key={`plank-${plank.id}`} 
+              ref={(el) => { if (el) plankDOMRefs.current[plank.id] = el; }}
+              style={{
+                position: 'absolute',
+                left: cx,
+                top: cy,
+                transform: `translate(-50%, -50%) rotate(${angle}rad)`,
+                width: length + 36,
+                height: 36,
+                zIndex: plank.z,
+                pointerEvents: 'none',
+                willChange: 'transform, left, top' // Performance hint
+              }}>
               <div className="plank" style={{ width: '100%', height: '100%', borderRadius: 18, position: 'relative' }}>
                 <div className="plank-texture" />
                 <div className="blue-bracket" style={{ position: 'absolute', top: 0, left: 0 }}/>
