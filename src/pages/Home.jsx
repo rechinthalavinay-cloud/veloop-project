@@ -75,7 +75,7 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
             >
               {/* Primary Assets */}
-              <motion.div className={styles.assetCard} variants={fadeUp}>
+              <motion.div className={`${styles.assetCard} ${styles.primaryWalletCard}`} variants={fadeUp}>
                 <div className={styles.assetHeader}>
                   <h3>Primary Balances</h3>
                   <div className={styles.assetIndicator}></div>
@@ -109,7 +109,7 @@ export default function Home() {
               </motion.div>
 
               {/* Secondary Assets */}
-              <motion.div className={styles.assetCard} variants={fadeUp}>
+              <motion.div className={`${styles.assetCard} ${styles.secondaryWalletCard}`} variants={fadeUp}>
                 <div className={styles.assetHeader}>
                   <h3>Secondary Assets</h3>
                 </div>
