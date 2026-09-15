@@ -147,7 +147,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
     const project = (x, y, radius, heightOffset = 0) => {
       const scale = 1.2 / (1.5 + y);
-      const screenY = H - 50 - (y * 380 * scale) - (heightOffset * 300 * scale);
+      const screenY = H - 30 - (y * 550 * scale) - (heightOffset * 300 * scale);
       const screenX = W / 2 + (x * 200 * scale);
       return { x: screenX, y: screenY, r: (radius || 0.05) * 300 * scale, scale };
     };
@@ -352,8 +352,30 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       
       const horizonY = project(0, 1.4, 0).y;
       
-      ctx.strokeStyle = "#00e5ff";
+      // Arcade Wall Scenery (Neon Grid)
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.15)";
       ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < W; i += 30) { ctx.moveTo(i, 0); ctx.lineTo(i, horizonY); }
+      for (let i = 0; i < horizonY; i += 30) { ctx.moveTo(0, i); ctx.lineTo(W, i); }
+      ctx.stroke();
+      
+      // Neon Veloop Sign
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.font = "900 36px sans-serif";
+      ctx.fillStyle = "#ff007f";
+      ctx.shadowColor = "#ff007f";
+      ctx.shadowBlur = 20;
+      ctx.fillText("VELOOP", W/2, horizonY / 2);
+      ctx.font = "700 16px sans-serif";
+      ctx.fillStyle = "#00e5ff";
+      ctx.shadowColor = "#00e5ff";
+      ctx.fillText("BOWLING", W/2, horizonY / 2 + 24);
+      ctx.restore();
+      
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(W, horizonY); ctx.stroke();
       ctx.shadowColor = "#00e5ff"; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
 
