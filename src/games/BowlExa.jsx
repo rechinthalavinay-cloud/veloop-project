@@ -1,74 +1,128 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { GameShell } from "./GameShell";
 
-// Physics and 3D projection constants
-const PIN_RADIUS = 0.07;
+// --- Audio Synthesizer ---
+const playSound = (type, ctxRef) => {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  const actx = ctxRef.current;
+  if (actx.state === "suspended") actx.resume();
+
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.connect(gain);
+  gain.connect(actx.destination);
+
+  if (type === "hit") {
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(800, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, actx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.5, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.1);
+    osc.start();
+    osc.stop(actx.currentTime + 0.1);
+  } else if (type === "roll") {
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(60, actx.currentTime);
+    gain.gain.setValueAtTime(0, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, actx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.5);
+    osc.start();
+    osc.stop(actx.currentTime + 0.5);
+  } else if (type === "strike") {
+    osc.type = "square";
+    osc.frequency.setValueAtTime(400, actx.currentTime);
+    osc.frequency.linearRampToValueAtTime(600, actx.currentTime + 0.2);
+    osc.frequency.linearRampToValueAtTime(800, actx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.6);
+    osc.start();
+    osc.stop(actx.currentTime + 0.6);
+  }
+};
+
+// Physics and Projection
+const PIN_RADIUS = 0.06;
 const BALL_RADIUS = 0.12;
-const GRAVITY = 0; // Top-down 2D physics
 
 export function BowlExa({ onOutcome, reviveSignal }) {
   const canvasRef = useRef(null);
   const stateRef = useRef(null);
-  const [hud, setHud] = useState({ score: 0, throws: 6, phase: "playing" });
+  const audioCtxRef = useRef(null);
+  const [hud, setHud] = useState({ score: 0, throws: 3, phase: "playing" });
 
   const initPins = () => {
+    // Exactly 6 pins in a triangle
     return [
-      { id: 0, x: 0, y: 0.85, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 1, x: -0.15, y: 0.89, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 2, x: 0.15, y: 0.89, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 3, x: -0.3, y: 0.93, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 4, x: 0, y: 0.93, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 5, x: 0.3, y: 0.93, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 6, x: -0.45, y: 0.97, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 7, x: -0.15, y: 0.97, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 8, x: 0.15, y: 0.97, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
-      { id: 9, x: 0.45, y: 0.97, vx: 0, vy: 0, up: true, r: PIN_RADIUS },
+      { id: 0, x: 0, y: 0.85, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 1, x: -0.15, y: 0.90, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 2, x: 0.15, y: 0.90, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 3, x: -0.3, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 4, x: 0, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 5, x: 0.3, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
     ];
   };
 
   const initState = () => ({
     pins: initPins(),
-    ball: { x: 0, y: 0, vx: 0, vy: 0, active: false, spin: 0 },
-    obstacle: { x: 0, y: 0.5, w: 0.25, h: 0.05, vx: 0.015 },
+    ball: { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0 },
     score: 0,
-    throws: 6,
-    state: "idle", // idle, rolling, resetting
-    drag: null, // { startX, startY, time }
+    throws: 3,
+    state: "idle", // idle, aiming, rolling, resetting
+    drag: null,
+    particles: [],
+    messages: [], // floating text
+    rollSoundTimer: 0,
+    cameraShake: 0
   });
 
   useEffect(() => {
     if (!reviveSignal) return;
-    if (stateRef.current) stateRef.current.throws = Math.max(stateRef.current.throws, 2);
+    if (stateRef.current) stateRef.current.throws = Math.max(stateRef.current.throws, 1);
     stateRef.current.state = "idle";
     setHud(h => ({ ...h, throws: stateRef.current.throws, phase: "playing" }));
   }, [reviveSignal]);
+
+  const updateHud = (s) => {
+    const scoreEl = document.getElementById('game-score');
+    if (scoreEl) scoreEl.innerText = `⚡ ${s.score}`;
+    const throwsEl = document.getElementById('be-throws');
+    if (throwsEl) throwsEl.innerText = `🎳 ${s.throws} left`;
+  };
 
   const finishThrow = useCallback((knockedCount) => {
     const s = stateRef.current;
     if (!s) return;
     
-    const gained = knockedCount * 15 + (knockedCount === 10 ? 50 : 0);
+    let gained = knockedCount * 10;
+    if (knockedCount === 6) {
+      gained += 40; // STRIKE bonus
+      playSound("strike", audioCtxRef);
+      s.messages.push({ text: "STRIKE!", life: 100, scale: 2, color: "#ffeb3b" });
+    } else if (knockedCount > 0) {
+      s.messages.push({ text: `+${gained}`, life: 80, scale: 1.5, color: "#00e5ff" });
+    }
+
     s.score += gained;
     s.throws--;
     
-    // Check if we need to reset all pins (e.g. Strike or spare mechanics)
-    // For this arcade version, we reset all pins if all are down, or keep standing if not.
     const allDown = s.pins.every(p => !p.up);
-    if (allDown) {
-      s.pins = initPins();
+    if (allDown || s.throws > 0) { // In this arcade mode, pins reset every throw for simplicity, or we leave them if not all down?
+      // Wait, standard is 3 throws per round, reset pins if strike, otherwise keep them? 
+      // User says: "If all 6 pins are knocked down, show a "STRIKE!"... and reset pins.
+      if (allDown) s.pins = initPins();
+    } else if (s.throws <= 0) {
+      // Game over state handles it
     }
     
-    // Speed up obstacle slightly on every throw
-    s.obstacle.vx *= 1.1;
-    
-    s.ball = { x: 0, y: 0, vx: 0, vy: 0, active: false, spin: 0 };
+    s.ball = { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0 };
     s.state = "idle";
     
-    setHud({ score: s.score, throws: s.throws, phase: "playing" });
+    updateHud(s);
     
     if (s.throws <= 0) {
-      const isWin = s.score >= 80;
-      setHud(h => ({ ...h, phase: isWin ? "complete" : "over" }));
+      const isWin = s.score > 0;
+      setHud({ score: s.score, throws: s.throws, phase: isWin ? "complete" : "over" });
       setTimeout(() => onOutcome?.({ type: isWin ? "complete" : "over", score: s.score }), 0);
     }
   }, [onOutcome]);
@@ -85,78 +139,60 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
     // Perspective projection
     const project = (x, y, radius) => {
-      const scale = 1 - 0.45 * y; // scale shrinks to 0.55 at y=1 (much larger than 0.35)
-      const screenY = H - 80 - (320 * y); // Shorter pitch vertically
-      const screenX = W / 2 + (x * 150 * scale);
-      return { x: screenX, y: screenY, r: radius * 200 * scale, scale };
-    };
-
-    const handleKey = (e) => {
-      if (s.state !== "idle" || s.throws <= 0) return;
-      if (e.code === "ArrowLeft" || e.code === "KeyA") {
-        s.ball.x = Math.max(-0.8, s.ball.x - 0.05);
-      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-        s.ball.x = Math.min(0.8, s.ball.x + 0.05);
-      } else if (e.code === "Space") {
-        e.preventDefault();
-        s.ball.vy = 0.035; // standard throw speed
-        s.ball.vx = 0; // straight
-        s.ball.spin = 0;
-        s.ball.active = true;
-        s.state = "rolling";
-      }
+      // y goes from -0.2 (player) to 1.5 (pit)
+      const scale = 1.2 / (1.5 + y);
+      const screenY = H - 50 - (y * 380 * scale);
+      const screenX = W / 2 + (x * 200 * scale);
+      return { x: screenX, y: screenY, r: radius * 300 * scale, scale };
     };
 
     const handlePtrDown = (e) => {
       if (s.state !== "idle" || s.throws <= 0) return;
+      if (e.cancelable) e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pt = e.touches ? e.touches[0] : e;
       const x = pt.clientX - rect.left;
       const y = pt.clientY - rect.top;
       
       const bp = project(s.ball.x, s.ball.y, BALL_RADIUS);
-      if (Math.hypot(x - bp.x, y - bp.y) < bp.r + 40) {
-        s.drag = { startX: x, startY: y, startBallX: s.ball.x, time: performance.now(), path: [] };
+      // forgiving hit radius for mobile
+      if (Math.hypot(x - bp.x, y - bp.y) < bp.r + 50) {
+        s.state = "aiming";
+        s.drag = { startX: x, startY: y, currentX: x, currentY: y };
       }
     };
 
     const handlePtrMove = (e) => {
-      if (!s.drag) return;
+      if (s.state !== "aiming" || !s.drag) return;
+      if (e.cancelable) e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pt = e.touches ? e.touches[0] : e;
-      const cx = pt.clientX - rect.left;
-      const cy = pt.clientY - rect.top;
-      s.drag.path.push({ x: cx, y: cy });
-      
-      if (s.state === "idle") {
-        const dx = cx - s.drag.startX;
-        const laneWorldDx = dx / 150; 
-        s.ball.x = Math.max(-0.8, Math.min(0.8, s.drag.startBallX + laneWorldDx));
-      }
+      s.drag.currentX = pt.clientX - rect.left;
+      s.drag.currentY = pt.clientY - rect.top;
     };
 
     const handlePtrUp = (e) => {
-      if (!s.drag) return;
-      const dt = performance.now() - s.drag.time;
-      if (dt > 20 && s.drag.path.length > 2) {
-        const p1 = { x: s.drag.startX, y: s.drag.startY };
-        const p2 = s.drag.path[s.drag.path.length - 1];
-        const dy = p1.y - p2.y; // pixels dragged up
-        const dx = p2.x - p1.x; // pixels dragged right
+      if (s.state !== "aiming" || !s.drag) return;
+      
+      const dy = s.drag.currentY - s.drag.startY; // positive is dragging down
+      const dx = s.drag.currentX - s.drag.startX;
+      
+      if (dy > 30) { // Dragged back enough
+        // Launch!
+        const power = Math.min(1, dy / 200); // 0 to 1
+        s.ball.vy = 0.02 + (power * 0.06); // Speed forwards
+        s.ball.vx = -(dx / 200) * 0.02; // Lateral aim (invert so dragging left shoots right? No, dragging left shoots left)
         
-        if (dy > 30) {
-          s.ball.vy = Math.min(0.04, dy / dt * 0.02); // velocity down lane
-          s.ball.vx = (dx / dy) * s.ball.vy * 0.5; // lateral velocity
-          
-          // Calculate spin based on curve of swipe
-          const midPoint = s.drag.path[Math.floor(s.drag.path.length / 2)];
-          const expectedMidX = (p1.x + p2.x) / 2;
-          const curve = midPoint.x - expectedMidX;
-          s.ball.spin = curve * 0.0005;
-
-          s.ball.active = true;
-          s.state = "rolling";
-        }
+        // Dragging left should shoot left. So if dx is negative, vx should be negative.
+        s.ball.vx = (dx / 200) * 0.02; 
+        
+        // Spin is calculated if the drag is strongly diagonal
+        s.ball.spin = -(dx / dy) * 0.001; 
+        
+        s.ball.active = true;
+        s.state = "rolling";
+      } else {
+        s.state = "idle";
       }
       s.drag = null;
     };
@@ -164,8 +200,8 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     canvas.addEventListener("pointerdown", handlePtrDown);
     window.addEventListener("pointermove", handlePtrMove);
     window.addEventListener("pointerup", handlePtrUp);
-    window.addEventListener("keydown", handleKey);
-    canvas.addEventListener("touchstart", (e) => { if(s.state==="idle") e.preventDefault(); }, {passive:false});
+    canvas.addEventListener("touchstart", handlePtrDown, {passive: false});
+    window.addEventListener("touchmove", handlePtrMove, {passive: false});
 
     let frame;
     let lastKnockedCount = 0;
@@ -176,12 +212,10 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       const dy = b.y - a.y;
       const dist = Math.hypot(dx, dy);
       if (dist < a.r + b.r) {
-        // Simple elastic collision
         const overlap = (a.r + b.r) - dist;
         const nx = dx / dist;
         const ny = dy / dist;
         
-        // Separate
         const massRatioA = b.mass || 1;
         const massRatioB = a.mass || 1;
         const totalMass = massRatioA + massRatioB;
@@ -191,21 +225,30 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         b.x += nx * overlap * (massRatioB / totalMass);
         b.y += ny * overlap * (massRatioB / totalMass);
 
-        // Velocity exchange
         const kx = (a.vx - b.vx);
         const ky = (a.vy - b.vy);
-        const p = 2 * (nx * kx + ny * ky) / totalMass;
+        const p = 1.6 * (nx * kx + ny * ky) / totalMass; // restitution 0.6
         
-        a.vx -= p * massRatioA * nx * 0.8;
-        a.vy -= p * massRatioA * ny * 0.8;
-        b.vx += p * massRatioB * nx * 0.8;
-        b.vy += p * massRatioB * ny * 0.8;
+        a.vx -= p * massRatioA * nx;
+        a.vy -= p * massRatioA * ny;
+        b.vx += p * massRatioB * nx;
+        b.vy += p * massRatioB * ny;
         
-        if (b.mass === 1) { // if b is a pin
-          b.up = false; // it's knocked over
+        if (b.mass === 1 && b.up) { // pin hit
+          b.up = false; 
+          s.cameraShake = Math.max(s.cameraShake, 6);
+          playSound("hit", audioCtxRef);
+          // sparks
+          for(let i=0; i<5; i++) {
+            s.particles.push({
+              x: b.x, y: b.y,
+              vx: (Math.random()-0.5)*0.03, vy: (Math.random()-0.5)*0.03,
+              life: 1.0, size: 2
+            });
+          }
         }
-        if (a.mass === 1) { // if a is a pin
-          a.up = false; 
+        if (a.mass === 1 && a.up) {
+          a.up = false;
         }
       }
     };
@@ -213,63 +256,56 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     const loop = () => {
       frame = requestAnimationFrame(loop);
       
-      // Obstacle movement
-      s.obstacle.x += s.obstacle.vx;
-      if (s.obstacle.x > 0.5) { s.obstacle.x = 0.5; s.obstacle.vx *= -1; }
-      if (s.obstacle.x < -0.5) { s.obstacle.x = -0.5; s.obstacle.vx *= -1; }
-      
-      // Physics Update
+      // Physics
       if (s.state === "rolling") {
         s.ball.x += s.ball.vx;
         s.ball.y += s.ball.vy;
-        s.ball.vx += s.ball.spin; // Hook effect
+        s.ball.vx += s.ball.spin; 
         
-        // Friction
-        s.ball.vx *= 0.99;
+        // Ball rolling animation
+        s.ball.rotX -= s.ball.vy * 10;
+        s.ball.rotY += s.ball.vx * 10;
+        
+        // Sound
+        s.rollSoundTimer++;
+        if (s.rollSoundTimer > 15) {
+          playSound("roll", audioCtxRef);
+          s.rollSoundTimer = 0;
+        }
+
+        s.ball.vx *= 0.992;
         s.ball.vy *= 0.995;
 
-        // Check gutter
-        if (s.ball.x < -1.1 || s.ball.x > 1.1) {
-          s.ball.vx *= 0.9;
-        }
-
-        // Ball vs Obstacle
-        if (s.ball.y + BALL_RADIUS > s.obstacle.y - s.obstacle.h/2 && 
-            s.ball.y - BALL_RADIUS < s.obstacle.y + s.obstacle.h/2 &&
-            s.ball.x + BALL_RADIUS > s.obstacle.x - s.obstacle.w/2 &&
-            s.ball.x - BALL_RADIUS < s.obstacle.x + s.obstacle.w/2) {
-            
-            s.ball.vy *= -0.3; // Bounce backward
-            s.ball.vx += (s.ball.x > s.obstacle.x ? 0.015 : -0.015);
-        }
-
-        s.ball.mass = 10; // ball is heavier than pins
-        s.ball.r = BALL_RADIUS;
+        // Gutters
+        if (s.ball.x < -0.7) { s.ball.x = -0.7; s.ball.vx *= -0.5; }
+        if (s.ball.x > 0.7) { s.ball.x = 0.7; s.ball.vx *= -0.5; }
         
         for (const p of s.pins) {
           if (p.up || Math.hypot(p.vx, p.vy) > 0.001) {
             p.x += p.vx;
             p.y += p.vy;
-            p.vx *= 0.92;
-            p.vy *= 0.92;
-            p.mass = 1;
+            p.vx *= 0.94;
+            p.vy *= 0.94;
+            
+            // Gutters for pins
+            if (p.x < -0.8 || p.x > 0.8 || p.y > 1.4) {
+               p.vx = 0; p.vy = 0; p.up = false;
+            }
             resolveCollision(s.ball, p);
           }
         }
 
-        // Pin to pin collisions
         for (let i = 0; i < s.pins.length; i++) {
           for (let j = i + 1; j < s.pins.length; j++) {
-            if (s.pins[i].y > 0.5 && s.pins[j].y > 0.5) {
+            if (!s.pins[i].up || !s.pins[j].up || s.pins[i].y > 0.5) {
               resolveCollision(s.pins[i], s.pins[j]);
             }
           }
         }
 
-        // End of roll condition
-        if (s.ball.y > 1.2 || (s.ball.vy < 0.001 && s.ball.y > 0)) {
+        if (s.ball.y > 1.3 || (s.ball.vy < 0.001 && s.ball.y > 0.2)) {
           resetTimer++;
-          if (resetTimer > 90) { // wait ~1.5s
+          if (resetTimer > 60) {
             s.state = "resetting";
             const knocked = s.pins.filter(p => !p.up).length;
             const newKnocked = knocked - lastKnockedCount;
@@ -278,117 +314,236 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             finishThrow(newKnocked);
           }
         }
-      } else {
+      } else if (s.state === "idle") {
         lastKnockedCount = s.pins.filter(p => !p.up).length;
       }
 
-      // Render
-      ctx.fillStyle = "#0a0a14"; // background
-      ctx.fillRect(0, 0, W, H);
+      s.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.04; });
+      s.particles = s.particles.filter(p => p.life > 0);
 
-      // Draw Lane
-      ctx.fillStyle = "#8d6e63"; // wooden floor
+      s.messages.forEach(m => m.life--);
+      s.messages = s.messages.filter(m => m.life > 0);
+
+      // --- RENDER ---
+      ctx.save();
+      if (s.cameraShake > 0) {
+        ctx.translate((Math.random() - 0.5) * s.cameraShake, (Math.random() - 0.5) * s.cameraShake);
+        s.cameraShake *= 0.8;
+        if (s.cameraShake < 0.5) s.cameraShake = 0;
+      }
+
+      // Background Arcade Environment
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0, "#050014");
+      bgGrad.addColorStop(0.4, "#2a0042");
+      bgGrad.addColorStop(1, "#000000");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+      
+      // Neon Horizon Line
+      ctx.strokeStyle = "#e91e63";
+      ctx.lineWidth = 2;
+      const horizonY = project(0, 1.5, 0).y;
+      ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(W, horizonY); ctx.stroke();
+      ctx.shadowColor = "#e91e63"; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+
+      // Draw Glossy Lane
+      const laneGrad = ctx.createLinearGradient(0, H, 0, horizonY);
+      laneGrad.addColorStop(0, "#4a148c"); // Deep purple
+      laneGrad.addColorStop(1, "#050014");
+      ctx.fillStyle = laneGrad;
       ctx.beginPath();
-      const tl = project(-1, 1, 0);
-      const tr = project(1, 1, 0);
-      const bl = project(-1, 0, 0);
-      const br = project(1, 0, 0);
-      ctx.moveTo(tl.x, tl.y);
-      ctx.lineTo(tr.x, tr.y);
-      ctx.lineTo(br.x, br.y);
-      ctx.lineTo(bl.x, bl.y);
+      const tl = project(-0.8, 1.5, 0);
+      const tr = project(0.8, 1.5, 0);
+      const bl = project(-0.8, -0.2, 0);
+      const br = project(0.8, -0.2, 0);
+      ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(bl.x, bl.y);
       ctx.fill();
 
-      // Gutters
-      ctx.fillStyle = "#263238";
-      ctx.beginPath(); ctx.moveTo(tl.x-10*tl.scale, tl.y); ctx.lineTo(tl.x, tl.y); ctx.lineTo(bl.x, bl.y); ctx.lineTo(bl.x-100, bl.y); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(tr.x+10*tr.scale, tr.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(br.x+100, br.y); ctx.fill();
+      // Lane Edge Glows
+      ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(bl.x, bl.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.stroke();
 
-      // Sort objects by depth (y) to render back-to-front
-      const objects = [
-        ...s.pins.map(p => ({ ...p, type: 'pin' })),
-        { ...s.ball, type: 'ball' },
-        { ...s.obstacle, type: 'obstacle' }
-      ].sort((a, b) => b.y - a.y);
-
-      for (const obj of objects) {
+      // Floor Reflections (Render inverted objects under the floor)
+      const drawObject = (obj, isReflect) => {
         if (obj.type === 'pin') {
+          if (!obj.up && !isReflect) return; // Simplified: don't draw fallen pins fully, just circles later
           const p = project(obj.x, obj.y, obj.r);
-          if (obj.up) {
-            // Shadow
-            ctx.fillStyle = "rgba(0,0,0,0.5)";
-            ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.2, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
-            
-            // Body
-            ctx.fillStyle = "#f5f5f5";
-            ctx.beginPath();
-            ctx.moveTo(p.x - p.r, p.y);
-            ctx.bezierCurveTo(p.x - p.r, p.y - p.r*2.5, p.x - p.r*0.4, p.y - p.r*3, p.x, p.y - p.r*3.5);
-            ctx.bezierCurveTo(p.x + p.r*0.4, p.y - p.r*3, p.x + p.r, p.y - p.r*2.5, p.x + p.r, p.y);
-            ctx.bezierCurveTo(p.x + p.r, p.y + p.r*0.5, p.x - p.r, p.y + p.r*0.5, p.x - p.r, p.y);
-            ctx.fill();
-            
-            // Red stripe
-            ctx.strokeStyle = "#e53935";
-            ctx.lineWidth = p.r * 0.3;
-            ctx.beginPath(); ctx.moveTo(p.x - p.r*0.4, p.y - p.r*2); ctx.lineTo(p.x + p.r*0.4, p.y - p.r*2); ctx.stroke();
-          } else {
-            // Knocked over pin (simple circle representation)
-            ctx.fillStyle = "rgba(200,200,200,0.3)";
-            ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r*0.3, obj.vx*10, 0, Math.PI*2); ctx.fill();
+          if (p.y < horizonY) return;
+          
+          ctx.save();
+          if (isReflect) {
+            ctx.globalAlpha = 0.3;
+            // Mirror vertically
+            ctx.translate(p.x, p.y + p.r*4);
+            ctx.scale(1, -1);
+            ctx.translate(-p.x, -p.y);
           }
+          
+          if (!isReflect) {
+            // Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.3, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
+          }
+
+          // Pin Body (Cylinder gradient)
+          const pinGrad = ctx.createLinearGradient(p.x - p.r, 0, p.x + p.r, 0);
+          pinGrad.addColorStop(0, "#b0bec5");
+          pinGrad.addColorStop(0.3, "#ffffff");
+          pinGrad.addColorStop(0.8, "#eceff1");
+          pinGrad.addColorStop(1, "#90a4ae");
+          
+          ctx.fillStyle = pinGrad;
+          ctx.beginPath();
+          ctx.moveTo(p.x - p.r, p.y);
+          ctx.bezierCurveTo(p.x - p.r, p.y - p.r*2.5, p.x - p.r*0.4, p.y - p.r*3, p.x, p.y - p.r*3.5);
+          ctx.bezierCurveTo(p.x + p.r*0.4, p.y - p.r*3, p.x + p.r, p.y - p.r*2.5, p.x + p.r, p.y);
+          ctx.bezierCurveTo(p.x + p.r, p.y + p.r*0.5, p.x - p.r, p.y + p.r*0.5, p.x - p.r, p.y);
+          ctx.fill();
+          
+          // Red Stripes
+          ctx.strokeStyle = "#e53935";
+          ctx.lineWidth = p.r * 0.4;
+          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.5, p.y - p.r*2); ctx.lineTo(p.x + p.r*0.5, p.y - p.r*2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.4, p.y - p.r*1.3); ctx.lineTo(p.x + p.r*0.4, p.y - p.r*1.3); ctx.stroke();
+
+          ctx.restore();
         } else if (obj.type === 'ball') {
-          if (obj.y > 1.2 && !obj.active) continue; // Don't draw if it fell in pit
-          const p = project(obj.x, obj.y, BALL_RADIUS);
-          
-          // Shadow
-          ctx.fillStyle = "rgba(0,0,0,0.6)";
-          ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.1, p.r*0.4, 0, 0, Math.PI*2); ctx.fill();
-          
-          // Ball
-          const grad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
-          grad.addColorStop(0, "#ffb74d");
-          grad.addColorStop(1, "#c9782a");
-          ctx.fillStyle = grad;
+          const p = project(obj.x, obj.y, obj.r);
+          if (p.y < horizonY) return;
+
+          ctx.save();
+          if (isReflect) {
+            ctx.globalAlpha = 0.2;
+            ctx.translate(p.x, p.y + p.r*2);
+            ctx.scale(1, -1);
+            ctx.translate(-p.x, -p.y);
+          }
+
+          if (!isReflect) {
+             ctx.fillStyle = "rgba(0,0,0,0.8)";
+             ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
+          }
+
+          // Glossy Sphere
+          const bGrad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
+          bGrad.addColorStop(0, "#ce93d8");
+          bGrad.addColorStop(0.3, "#8e24aa");
+          bGrad.addColorStop(1, "#4a148c");
+          ctx.fillStyle = bGrad;
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
           
-          // Holes
-          ctx.fillStyle = "#3e2723";
-          ctx.beginPath(); ctx.arc(p.x + p.r*0.3, p.y - p.r*0.2, p.r*0.15, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath(); ctx.arc(p.x + p.r*0.5, p.y + p.r*0.1, p.r*0.15, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath(); ctx.arc(p.x + p.r*0.1, p.y + p.r*0.2, p.r*0.15, 0, Math.PI*2); ctx.fill();
-        } else if (obj.type === 'obstacle') {
-          const obP = project(obj.x, obj.y, 0);
-          const obLeft = project(obj.x - obj.w/2, obj.y, 0).x;
-          const obRight = project(obj.x + obj.w/2, obj.y, 0).x;
-          
-          ctx.fillStyle = "rgba(0,0,0,0.5)"; // Shadow
-          ctx.fillRect(obLeft, obP.y, obRight - obLeft, 10 * obP.scale);
-          
-          ctx.fillStyle = "#d32f2f"; // Dark red border
-          ctx.fillRect(obLeft, obP.y - 25 * obP.scale, obRight - obLeft, 35 * obP.scale);
-          ctx.fillStyle = "#f44336"; // Bright red face
-          ctx.fillRect(obLeft + 2, obP.y - 25 * obP.scale + 2, obRight - obLeft - 4, 35 * obP.scale - 4);
-          
-          ctx.fillStyle = "#212121"; // Stripes
-          for (let xx = obLeft + 5; xx < obRight - 10; xx += 20 * obP.scale) {
-             ctx.fillRect(xx, obP.y - 25 * obP.scale + 2, 10 * obP.scale, 35 * obP.scale - 4);
+          // Specular Highlight
+          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ctx.beginPath(); ctx.arc(p.x - p.r*0.4, p.y - p.r*0.4, p.r*0.2, 0, Math.PI*2); ctx.fill();
+
+          // Finger Holes (Rotated)
+          if (!isReflect) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            // Quick pseudo 3D rotation of holes
+            const hx = Math.sin(obj.rotY) * p.r * 0.5;
+            const hy = Math.sin(obj.rotX) * p.r * 0.5;
+            if (Math.cos(obj.rotY) > 0 && Math.cos(obj.rotX) > 0) {
+               ctx.fillStyle = "#120024";
+               ctx.beginPath(); ctx.arc(hx, hy - p.r*0.2, p.r*0.12, 0, Math.PI*2); ctx.fill();
+               ctx.beginPath(); ctx.arc(hx - p.r*0.2, hy + p.r*0.1, p.r*0.12, 0, Math.PI*2); ctx.fill();
+               ctx.beginPath(); ctx.arc(hx + p.r*0.2, hy + p.r*0.1, p.r*0.12, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.restore();
           }
+          ctx.restore();
         }
+      };
+
+      const objects = [
+        ...s.pins.map(p => ({ ...p, type: 'pin' })),
+        { ...s.ball, type: 'ball' }
+      ].sort((a, b) => b.y - a.y); // sort back to front
+
+      // Draw reflections first
+      objects.forEach(o => drawObject(o, true));
+      // Draw actual objects
+      objects.forEach(o => drawObject(o, false));
+
+      // Draw fallen pins (simplified for performance)
+      s.pins.forEach(obj => {
+         if (!obj.up) {
+            const p = project(obj.x, obj.y, obj.r);
+            ctx.fillStyle = "rgba(200, 200, 200, 0.4)";
+            ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r*1.2, p.r*0.4, obj.vx*5, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "rgba(229, 57, 53, 0.4)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+         }
+      });
+
+      // Sparks
+      s.particles.forEach(p => {
+         const pp = project(p.x, p.y, 0);
+         ctx.fillStyle = "#ffeb3b";
+         ctx.globalAlpha = p.life;
+         ctx.beginPath(); ctx.arc(pp.x, pp.y, p.size * pp.scale * 10, 0, Math.PI*2); ctx.fill();
+         ctx.globalAlpha = 1;
+      });
+
+      // Aiming UI (Trajectory Prediction)
+      if (s.state === "aiming" && s.drag) {
+         const dy = Math.max(0, s.drag.currentY - s.drag.startY);
+         const dx = s.drag.currentX - s.drag.startX;
+         if (dy > 10) {
+            const power = Math.min(1, dy / 200);
+            const initVx = (dx / 200) * 0.02;
+            const initVy = 0.02 + (power * 0.06);
+            const spin = -(dx / dy) * 0.001;
+            
+            ctx.strokeStyle = `rgba(0, 229, 255, ${power})`;
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 10]);
+            ctx.lineDashOffset = -s.tick;
+            ctx.beginPath();
+            
+            let px = s.ball.x;
+            let py = s.ball.y;
+            let pvx = initVx;
+            const pp = project(px, py, 0);
+            ctx.moveTo(pp.x, pp.y);
+            
+            // Predict path
+            for(let i=0; i<30; i++) {
+               px += pvx;
+               py += initVy;
+               pvx += spin;
+               pvx *= 0.992;
+               if (px < -0.7 || px > 0.7) pvx *= -0.5;
+               const nextP = project(px, py, 0);
+               ctx.lineTo(nextP.x, nextP.y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Arrow head
+            ctx.fillStyle = `rgba(0, 229, 255, ${power})`;
+            const arrowP = project(px, py, 0);
+            ctx.beginPath(); ctx.arc(arrowP.x, arrowP.y, 10 * arrowP.scale, 0, Math.PI*2); ctx.fill();
+         }
       }
 
-      // HUD overlay during drag
-      if (s.drag && s.state === "idle") {
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(s.drag.startX, s.drag.startY);
-        const lastPt = s.drag.path[s.drag.path.length-1];
-        if (lastPt) ctx.lineTo(lastPt.x, lastPt.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+      // Messages (STRIKE, etc)
+      s.messages.forEach(m => {
+         ctx.save();
+         ctx.globalAlpha = Math.min(1, m.life / 20);
+         ctx.fillStyle = m.color;
+         ctx.font = `900 ${m.scale * 24}px sans-serif`;
+         ctx.textAlign = "center";
+         ctx.shadowColor = m.color;
+         ctx.shadowBlur = 10;
+         ctx.fillText(m.text, W/2, H/2 - (100 - m.life));
+         ctx.restore();
+      });
+
+      ctx.restore(); // Restore camera shake
     };
 
     frame = requestAnimationFrame(loop);
@@ -397,26 +552,36 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       canvas.removeEventListener("pointerdown", handlePtrDown);
       window.removeEventListener("pointermove", handlePtrMove);
       window.removeEventListener("pointerup", handlePtrUp);
-      window.removeEventListener("keydown", handleKey);
+      canvas.removeEventListener("touchstart", handlePtrDown);
+      window.removeEventListener("touchmove", handlePtrMove);
     };
   }, [finishThrow]);
 
   const restart = () => {
     stateRef.current = null; // force re-init
-    setHud({ score: 0, throws: 6, phase: "playing" });
+    setHud({ score: 0, throws: 3, phase: "playing" });
   };
 
   return (
-    <GameShell title="BowlExa" score={hud.score} level={1}
-      extraHud={<span style={{ color: "#64b5f6" }}>🎳 {hud.throws} throws</span>}
+    <GameShell title="Veloop Bowling" score={hud.score} level={1}
+      extraHud={<span id="be-throws" style={{ color: "#64b5f6" }}>🎳 {hud.throws} left</span>}
       phase={hud.phase} onPause={()=>{}} onResume={()=>{}} onRestart={restart}>
-      <canvas ref={canvasRef} width={360} height={520}
-        style={{ width: "100%", height: "auto", display: "block", touchAction: "none", borderRadius: 12 }} />
-      {hud.phase === "playing" && stateRef.current?.state === "idle" && (
-        <p style={{ position: "absolute", bottom: 20, width: "100%", textAlign: "center", color: "#fff", pointerEvents: "none", textShadow: "0 2px 4px rgba(0,0,0,0.8)" }}>
-          Avoid the moving barrier!<br/>Swipe up or press Space to bowl.
-        </p>
-      )}
+      <div style={{
+        border: "2px solid #00e5ff",
+        boxShadow: "0 0 20px rgba(0, 229, 255, 0.4)",
+        borderRadius: "16px",
+        padding: "4px",
+        margin: "0 auto",
+        width: "100%",
+        maxWidth: "min(420px, calc(80vh * 360 / 520))",
+        backgroundColor: "#050014"
+      }}>
+        <canvas ref={canvasRef} width={360} height={520}
+          style={{ width: "100%", height: "auto", display: "block", touchAction: "none", borderRadius: 12 }} />
+      </div>
+      <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem", textAlign: "center", padding: "12px 0 0" }}>
+        Drag the ball backwards to aim & set power.
+      </p>
     </GameShell>
   );
 }
