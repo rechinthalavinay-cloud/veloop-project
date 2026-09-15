@@ -1,7 +1,30 @@
+/* =========================================
+   GAME PLAY PAGE - SLEEK MINIMALIST
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 .screen {
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(160deg, #0d0d1a 0%, #1a0d2e 50%, #0d1a1a 100%);
-  color: #e8d8b0;
+  background-color: #030305;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Ambient glow matching the Home page */
+.screen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 50vh;
+  background: radial-gradient(circle at top, rgba(123, 97, 255, 0.15), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .loader,
@@ -11,108 +34,146 @@
   place-items: center;
   text-align: center;
   padding: 24px;
+  position: relative;
+  z-index: 10;
 }
 
 .loader {
-  gap: 16px;
-  color: #f0d060;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }
 
 .loader img {
-  animation: pop 1s ease-in-out infinite;
-  filter: drop-shadow(0 0 16px rgba(212,175,55,0.6));
+  animation: floatOrb 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(123, 97, 255, 0.3));
 }
 
 .loader strong {
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: #f0d060;
+  color: #fff;
+  font-weight: 700;
 }
 
 .loader p {
-  color: rgba(200,180,140,0.6);
-  font-size: 0.85rem;
+  color: #888;
+  font-size: 0.95rem;
   margin: 0;
+  max-width: 300px;
 }
 
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(5, 3, 18, 0.75);
-  backdrop-filter: blur(8px);
-  z-index: 30;
+  background: rgba(3, 3, 5, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
 }
 
 .sheet {
   width: min(360px, 100%);
-  background: linear-gradient(145deg, #1a1a2e, #12122a);
-  border: 1px solid rgba(212,175,55,0.3);
-  border-radius: 24px;
-  padding: 28px 24px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
-  color: #e8d8b0;
+  background: rgba(15, 15, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  padding: 40px 32px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  color: #fff;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .sheet p {
-  color: rgba(200,180,140,0.7);
+  color: #888;
   margin: 8px 0;
+  font-size: 0.95rem;
 }
 
 .sheet h2 {
-  color: #f0d060;
-  font-size: 1.6rem;
-  margin: 8px 0;
-  text-shadow: 0 0 20px rgba(212,175,55,0.4);
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 16px 0;
 }
 
 .sheet img {
-  filter: drop-shadow(0 0 12px rgba(212,175,55,0.5));
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 10px 20px rgba(123, 97, 255, 0.3));
 }
 
 .sheet button {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 16px;
   border: 0;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 900;
-  font-size: 0.9rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  color: #0d0d1a;
+  border-radius: 100px;
+  padding: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #fff;
+  color: #000;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(212,175,55,0.35);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sheet button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212,175,55,0.5);
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15);
 }
 
 .sheet button:disabled {
-  background: linear-gradient(135deg, #2a2a3a, #1a1a2a);
+  background: rgba(255, 255, 255, 0.05);
   color: #555;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: none;
   cursor: not-allowed;
 }
 
 .ghost {
-  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
-  color: rgba(200,180,140,0.7) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #a3a3a3 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: none !important;
+  margin-top: 12px !important;
+}
+
+.ghost:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
 }
 
 .dim {
-  filter: brightness(0.5) blur(1px);
+  filter: brightness(0.4) blur(4px);
   pointer-events: none;
+  transition: filter 0.3s ease;
 }
 
-@keyframes pop {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.1); }
+/* Animations */
+@keyframes floatOrb {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

@@ -1,72 +1,179 @@
 .card {
-  flex: 0 0 auto;
-  width: min(260px, 78vw);
-  height: 390px;
+  position: relative;
+  width: 280px;
+  background: var(--bg-surface);
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #1a1c2e;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: transform 0.25s ease, border-color 0.25s ease;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  height: 440px;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(212, 175, 55, 0.35);
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
-.art {
+.artBox {
   position: relative;
-  flex: 1;
+  width: 100%;
+  height: 200px;
   overflow: hidden;
-  background: #10121f;
+  background: #000;
 }
 
-.art img {
+.artImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.badge {
+.card:hover .artImage {
+  transform: scale(1.04);
+}
+
+.categoryBadge {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(22, 24, 39, 0.82);
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  color: var(--gold-soft);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  top: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.action {
-  min-height: 92px;
-  padding: 12px;
-  display: grid;
-  gap: 8px;
-  background: linear-gradient(180deg, #1d2036, #181a2c);
+.categoryBadge svg {
+  color: var(--color-purple);
 }
 
-.need {
-  border: 1px solid rgba(255, 180, 80, 0.35);
-  background: rgba(255, 180, 80, 0.08);
-  color: #ffd59a;
-  border-radius: 12px;
-  padding: 11px 14px;
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.info {
+  margin-bottom: 20px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
   font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.tagline {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rewardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px;
+  margin-top: auto;
+}
+
+.rewardBox, .costBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.costBox {
+  align-items: flex-end;
+}
+
+.rewardLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.rewardValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.coinIcon {
+  color: var(--color-gold);
+}
+
+.actionArea {
+  width: 100%;
+}
+
+.needTokensBtn {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.2);
+  color: #ff4d4d;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s;
   cursor: pointer;
 }
 
-@media (max-width: 600px) {
-  .card {
-    width: min(220px, 76vw);
-    height: 360px;
-  }
+.needTokensBtn:hover {
+  background: rgba(255, 77, 77, 0.15);
+}
+
+.hoverGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 70%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.card:hover .hoverGlow {
+  opacity: 1;
 }

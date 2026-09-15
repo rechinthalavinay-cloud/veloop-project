@@ -1,12 +1,19 @@
+/* =========================================
+   GAME SHELL - PREMIUM MINIMALIST AESTHETIC
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 .shell {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px 24px;
-  background: linear-gradient(160deg, #0d0d1a 0%, #1a0d2e 50%, #0d1a1a 100%);
+  gap: 16px;
+  padding: 16px 12px 32px;
+  background-color: transparent;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 /* ── HUD ── */
@@ -14,156 +21,223 @@
   width: min(440px, 100%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-  border: 1px solid rgba(212,175,55,0.3);
-  border-radius: 16px;
-  padding: 10px 14px;
-  font-weight: 900;
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
-  color: #f0d060;
-  text-transform: uppercase;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(20, 20, 25, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 12px 20px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  font-family: 'Outfit', sans-serif;
+  z-index: 10;
 }
 
-.hudScore { flex: 1; }
-.hudLives { color: #ff6b6b; }
-.hudLevel { color: #64b5f6; }
-.hudTime  { color: #81c784; }
+.hudScore, .hudLives, .hudLevel, .hudTime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hudScore { color: #fff; }
+.hudScore::before { content: "⚡"; font-size: 0.9rem; filter: grayscale(100%) brightness(200%); }
+
+.hudLives { color: #ff4d4d; letter-spacing: 2px; }
+.hudLevel { color: #a3a3a3; font-weight: 600; }
+.hudTime  { color: #a3a3a3; font-weight: 600; }
 
 .pauseBtn {
-  margin-left: auto;
-  border: 1px solid rgba(212,175,55,0.4);
-  background: rgba(212,175,55,0.1);
-  color: #f0d060;
-  border-radius: 8px;
-  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.15s;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.pauseBtn:hover { background: rgba(212,175,55,0.25); }
+
+.pauseBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
 
 /* ── Game area ── */
 .area {
   width: min(440px, 100%);
-  border-radius: 20px;
-  background: linear-gradient(145deg, #12122a, #1e1040);
-  border: 1px solid rgba(212,175,55,0.18);
+  border-radius: 24px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
   touch-action: none;
   position: relative;
+  z-index: 5;
+}
+
+/* Add a subtle glow behind the game canvas */
+.area::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(123, 97, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* ── Overlays ── */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5,3,18,0.82);
-  backdrop-filter: blur(8px);
+  background: rgba(3, 3, 5, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: grid;
   place-items: center;
   z-index: 50;
   padding: 20px;
+  animation: fadeIn 0.3s ease;
 }
 
 .card {
   width: min(340px, 100%);
-  background: linear-gradient(145deg, #1a1a2e, #12122a);
-  border: 1px solid rgba(212,175,55,0.3);
-  border-radius: 24px;
-  padding: 28px 24px;
+  background: rgba(15, 15, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  padding: 40px 32px;
   text-align: center;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.winCard { border-color: rgba(100,200,100,0.4); }
+.winCard {
+  border-color: rgba(123, 97, 255, 0.3);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(123, 97, 255, 0.1);
+}
 
 .resultIcon {
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: rgba(255,80,80,0.15);
-  border: 2px solid rgba(255,80,80,0.4);
+  width: 64px; height: 64px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: grid; place-items: center;
-  font-size: 1.4rem;
-  color: #ff6b6b;
-  font-weight: 900;
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: 300;
+  margin-bottom: 8px;
 }
 
 .winIcon {
-  background: rgba(80,200,80,0.15);
-  border-color: rgba(80,200,80,0.4);
-  color: #81c784;
+  background: rgba(123, 97, 255, 0.1);
+  border-color: rgba(123, 97, 255, 0.3);
+  color: #7b61ff;
 }
 
 .cardLabel {
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  color: rgba(200,180,140,0.6);
-  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: #888;
+  font-weight: 600;
   margin: 0;
   text-transform: uppercase;
 }
 
 .cardTitle {
-  font-size: 1.3rem;
-  color: #f0d060;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  color: #fff;
   margin: 0;
-  font-weight: 900;
+  font-weight: 800;
+  letter-spacing: -1px;
 }
 
 .cardSub {
-  font-size: 0.75rem;
-  color: rgba(200,180,140,0.5);
+  font-size: 0.85rem;
+  color: #666;
   margin: 0;
 }
 
 .finalScore {
-  font-size: 2.8rem;
-  font-weight: 900;
-  color: #d4af37;
-  text-shadow: 0 0 24px rgba(212,175,55,0.5);
+  font-family: 'Outfit', sans-serif;
+  font-size: 4rem;
+  font-weight: 800;
+  color: #fff;
   line-height: 1;
+  margin: 8px 0;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #fff 0%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .primaryBtn {
   width: 100%;
-  margin-top: 6px;
+  margin-top: 16px;
   border: 0;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 900;
-  font-size: 0.9rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  color: #0d0d1a;
+  border-radius: 100px;
+  padding: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #fff;
+  color: #000;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(212,175,55,0.35);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.primaryBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.5); }
-.primaryBtn:active { transform: translateY(1px); }
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15);
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
 
 .ghostBtn {
   width: 100%;
-  margin-top: 4px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  padding: 12px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  background: rgba(255,255,255,0.04);
-  color: rgba(200,180,140,0.7);
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  padding: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: #a3a3a3;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
 }
-.ghostBtn:hover { background: rgba(255,255,255,0.08); }
+
+.ghostBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

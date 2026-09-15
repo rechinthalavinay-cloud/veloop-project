@@ -567,24 +567,43 @@ export function RealmClash({ onOutcome, reviveSignal }) {
     <GameShell title="Realm Clash" score={hud.score} level={hud.level}
       phase={phase} onPause={togglePause} onResume={togglePause} onRestart={restart}>
       <div style={{
+        position: "relative",
         margin: "0 auto",
         width: "100%",
         maxWidth: "min(420px, calc(80vh * 360 / 520))",
-        backgroundColor: "#12121a",
-        borderRadius: "16px",
+        background: "rgba(16, 16, 22, 0.4)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRadius: "28px",
         overflow: "hidden",
-        border: "2px solid #222",
-        boxShadow: "0 8px 32px rgba(126,87,194,0.2)"
+        border: "1px solid rgba(139, 92, 246, 0.3)",
+        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.15)",
+        padding: "6px"
       }}>
-        <canvas ref={canvasRef}
-          style={{ 
-            width: "100%", 
-            aspectRatio: "360 / 520",
-            display: "block", 
-            touchAction: "none"
-          }} />
+        <div style={{
+          borderRadius: "22px",
+          overflow: "hidden",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          backgroundColor: "#8bc34a"
+        }}>
+          <canvas ref={canvasRef}
+            style={{ 
+              width: "100%", 
+              aspectRatio: "360 / 520",
+              display: "block", 
+              touchAction: "none"
+            }} />
+        </div>
       </div>
-      <p style={{ color: "rgba(200,180,140,0.6)", fontSize: "0.75rem", textAlign: "center", padding: "8px 0", margin: 0 }}>
+      <p style={{ 
+        color: "#a3a3a3", 
+        fontSize: "0.85rem", 
+        fontWeight: "500",
+        textAlign: "center", 
+        padding: "16px 0 8px", 
+        margin: 0,
+        textShadow: "0 2px 10px rgba(0,0,0,0.5)"
+      }}>
         Drag to establish connections. Drag again to sever them.
       </p>
     </GameShell>

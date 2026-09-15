@@ -5,6 +5,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ['b6f5225927631d.lhr.life']
+    allowedHosts: true
+  },
+  preview: {
+    allowedHosts: true
   }
 })
