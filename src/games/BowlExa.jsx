@@ -44,6 +44,7 @@ const playSound = (type, ctxRef) => {
 // Physics and Projection
 const PIN_RADIUS = 0.06;
 const BALL_RADIUS = 0.12;
+const STATE_VERSION = 2; // Bump version to clear old hot-reloaded state
 
 export function BowlExa({ onOutcome, reviveSignal }) {
   const canvasRef = useRef(null);
@@ -64,8 +65,9 @@ export function BowlExa({ onOutcome, reviveSignal }) {
   };
 
   const initState = () => ({
+    version: STATE_VERSION,
     pins: initPins(),
-    ball: { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0 },
+    ball: { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0, r: BALL_RADIUS },
     score: 0,
     throws: 3,
     state: "idle", // idle, aiming, rolling, resetting
@@ -107,15 +109,9 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     s.throws--;
     
     const allDown = s.pins.every(p => !p.up);
-    if (allDown || s.throws > 0) { // In this arcade mode, pins reset every throw for simplicity, or we leave them if not all down?
-      // Wait, standard is 3 throws per round, reset pins if strike, otherwise keep them? 
-      // User says: "If all 6 pins are knocked down, show a "STRIKE!"... and reset pins.
-      if (allDown) s.pins = initPins();
-    } else if (s.throws <= 0) {
-      // Game over state handles it
-    }
+    if (allDown) s.pins = initPins();
     
-    s.ball = { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0 };
+    s.ball = { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0, r: BALL_RADIUS };
     s.state = "idle";
     
     updateHud(s);
@@ -133,8 +129,11 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     const ctx = canvas.getContext("2d");
     const W = 360, H = 520;
     
-    const s = stateRef.current || initState();
-    stateRef.current = s;
+    // Clear old state from hot-reloads
+    if (!stateRef.current || stateRef.current.version !== STATE_VERSION) {
+      stateRef.current = initState();
+    }
+    const s = stateRef.current;
     setHud({ score: s.score, throws: s.throws, phase: "playing" });
 
     // Perspective projection
@@ -143,7 +142,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       const scale = 1.2 / (1.5 + y);
       const screenY = H - 50 - (y * 380 * scale);
       const screenX = W / 2 + (x * 200 * scale);
-      return { x: screenX, y: screenY, r: radius * 300 * scale, scale };
+      return { x: screenX, y: screenY, r: (radius || 0.05) * 300 * scale, scale };
     };
 
     const handlePtrDown = (e) => {
@@ -154,8 +153,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       const x = pt.clientX - rect.left;
       const y = pt.clientY - rect.top;
       
-      const bp = project(s.ball.x, s.ball.y, BALL_RADIUS);
-      // forgiving hit radius for mobile
+      const bp = project(s.ball.x, s.ball.y, s.ball.r || BALL_RADIUS);
       if (Math.hypot(x - bp.x, y - bp.y) < bp.r + 50) {
         s.state = "aiming";
         s.drag = { startX: x, startY: y, currentX: x, currentY: y };
@@ -174,21 +172,14 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     const handlePtrUp = (e) => {
       if (s.state !== "aiming" || !s.drag) return;
       
-      const dy = s.drag.currentY - s.drag.startY; // positive is dragging down
+      const dy = s.drag.currentY - s.drag.startY; 
       const dx = s.drag.currentX - s.drag.startX;
       
-      if (dy > 30) { // Dragged back enough
-        // Launch!
-        const power = Math.min(1, dy / 200); // 0 to 1
-        s.ball.vy = 0.02 + (power * 0.06); // Speed forwards
-        s.ball.vx = -(dx / 200) * 0.02; // Lateral aim (invert so dragging left shoots right? No, dragging left shoots left)
-        
-        // Dragging left should shoot left. So if dx is negative, vx should be negative.
+      if (dy > 30) { 
+        const power = Math.min(1, dy / 200); 
+        s.ball.vy = 0.02 + (power * 0.06); 
         s.ball.vx = (dx / 200) * 0.02; 
-        
-        // Spin is calculated if the drag is strongly diagonal
         s.ball.spin = -(dx / dy) * 0.001; 
-        
         s.ball.active = true;
         s.state = "rolling";
       } else {
@@ -227,18 +218,17 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
         const kx = (a.vx - b.vx);
         const ky = (a.vy - b.vy);
-        const p = 1.6 * (nx * kx + ny * ky) / totalMass; // restitution 0.6
+        const p = 1.6 * (nx * kx + ny * ky) / totalMass; 
         
         a.vx -= p * massRatioA * nx;
         a.vy -= p * massRatioA * ny;
         b.vx += p * massRatioB * nx;
         b.vy += p * massRatioB * ny;
         
-        if (b.mass === 1 && b.up) { // pin hit
+        if (b.mass === 1 && b.up) { 
           b.up = false; 
           s.cameraShake = Math.max(s.cameraShake, 6);
           playSound("hit", audioCtxRef);
-          // sparks
           for(let i=0; i<5; i++) {
             s.particles.push({
               x: b.x, y: b.y,
@@ -262,11 +252,9 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         s.ball.y += s.ball.vy;
         s.ball.vx += s.ball.spin; 
         
-        // Ball rolling animation
         s.ball.rotX -= s.ball.vy * 10;
         s.ball.rotY += s.ball.vx * 10;
         
-        // Sound
         s.rollSoundTimer++;
         if (s.rollSoundTimer > 15) {
           playSound("roll", audioCtxRef);
@@ -276,7 +264,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         s.ball.vx *= 0.992;
         s.ball.vy *= 0.995;
 
-        // Gutters
         if (s.ball.x < -0.7) { s.ball.x = -0.7; s.ball.vx *= -0.5; }
         if (s.ball.x > 0.7) { s.ball.x = 0.7; s.ball.vx *= -0.5; }
         
@@ -287,7 +274,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             p.vx *= 0.94;
             p.vy *= 0.94;
             
-            // Gutters for pins
             if (p.x < -0.8 || p.x > 0.8 || p.y > 1.4) {
                p.vx = 0; p.vy = 0; p.up = false;
             }
@@ -320,7 +306,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
       s.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.04; });
       s.particles = s.particles.filter(p => p.life > 0);
-
       s.messages.forEach(m => m.life--);
       s.messages = s.messages.filter(m => m.life > 0);
 
@@ -340,16 +325,14 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
       
-      // Neon Horizon Line
+      const horizonY = project(0, 1.5, 0).y;
       ctx.strokeStyle = "#e91e63";
       ctx.lineWidth = 2;
-      const horizonY = project(0, 1.5, 0).y;
       ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(W, horizonY); ctx.stroke();
       ctx.shadowColor = "#e91e63"; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
 
-      // Draw Glossy Lane
       const laneGrad = ctx.createLinearGradient(0, H, 0, horizonY);
-      laneGrad.addColorStop(0, "#4a148c"); // Deep purple
+      laneGrad.addColorStop(0, "#4a148c"); 
       laneGrad.addColorStop(1, "#050014");
       ctx.fillStyle = laneGrad;
       ctx.beginPath();
@@ -360,34 +343,29 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(bl.x, bl.y);
       ctx.fill();
 
-      // Lane Edge Glows
       ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(bl.x, bl.y); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.stroke();
 
-      // Floor Reflections (Render inverted objects under the floor)
       const drawObject = (obj, isReflect) => {
         if (obj.type === 'pin') {
-          if (!obj.up && !isReflect) return; // Simplified: don't draw fallen pins fully, just circles later
-          const p = project(obj.x, obj.y, obj.r);
+          if (!obj.up) return; // Do not draw fallen pins as 3D (they are drawn as flat shadows later)
+          const p = project(obj.x, obj.y, obj.r || PIN_RADIUS);
           if (p.y < horizonY) return;
           
           ctx.save();
           if (isReflect) {
             ctx.globalAlpha = 0.3;
-            // Mirror vertically
             ctx.translate(p.x, p.y + p.r*4);
             ctx.scale(1, -1);
             ctx.translate(-p.x, -p.y);
           }
           
           if (!isReflect) {
-            // Shadow
             ctx.fillStyle = "rgba(0,0,0,0.6)";
             ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.3, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
           }
 
-          // Pin Body (Cylinder gradient)
           const pinGrad = ctx.createLinearGradient(p.x - p.r, 0, p.x + p.r, 0);
           pinGrad.addColorStop(0, "#b0bec5");
           pinGrad.addColorStop(0.3, "#ffffff");
@@ -402,7 +380,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
           ctx.bezierCurveTo(p.x + p.r, p.y + p.r*0.5, p.x - p.r, p.y + p.r*0.5, p.x - p.r, p.y);
           ctx.fill();
           
-          // Red Stripes
           ctx.strokeStyle = "#e53935";
           ctx.lineWidth = p.r * 0.4;
           ctx.beginPath(); ctx.moveTo(p.x - p.r*0.5, p.y - p.r*2); ctx.lineTo(p.x + p.r*0.5, p.y - p.r*2); ctx.stroke();
@@ -410,7 +387,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
           ctx.restore();
         } else if (obj.type === 'ball') {
-          const p = project(obj.x, obj.y, obj.r);
+          const p = project(obj.x, obj.y, obj.r || BALL_RADIUS);
           if (p.y < horizonY) return;
 
           ctx.save();
@@ -426,7 +403,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
              ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
           }
 
-          // Glossy Sphere
           const bGrad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
           bGrad.addColorStop(0, "#ce93d8");
           bGrad.addColorStop(0.3, "#8e24aa");
@@ -434,18 +410,15 @@ export function BowlExa({ onOutcome, reviveSignal }) {
           ctx.fillStyle = bGrad;
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
           
-          // Specular Highlight
           ctx.fillStyle = "rgba(255,255,255,0.3)";
           ctx.beginPath(); ctx.arc(p.x - p.r*0.4, p.y - p.r*0.4, p.r*0.2, 0, Math.PI*2); ctx.fill();
 
-          // Finger Holes (Rotated)
           if (!isReflect) {
             ctx.save();
             ctx.translate(p.x, p.y);
-            // Quick pseudo 3D rotation of holes
-            const hx = Math.sin(obj.rotY) * p.r * 0.5;
-            const hy = Math.sin(obj.rotX) * p.r * 0.5;
-            if (Math.cos(obj.rotY) > 0 && Math.cos(obj.rotX) > 0) {
+            const hx = Math.sin(obj.rotY || 0) * p.r * 0.5;
+            const hy = Math.sin(obj.rotX || 0) * p.r * 0.5;
+            if (Math.cos(obj.rotY || 0) > 0 && Math.cos(obj.rotX || 0) > 0) {
                ctx.fillStyle = "#120024";
                ctx.beginPath(); ctx.arc(hx, hy - p.r*0.2, p.r*0.12, 0, Math.PI*2); ctx.fill();
                ctx.beginPath(); ctx.arc(hx - p.r*0.2, hy + p.r*0.1, p.r*0.12, 0, Math.PI*2); ctx.fill();
@@ -460,17 +433,15 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       const objects = [
         ...s.pins.map(p => ({ ...p, type: 'pin' })),
         { ...s.ball, type: 'ball' }
-      ].sort((a, b) => b.y - a.y); // sort back to front
+      ].sort((a, b) => b.y - a.y); 
 
-      // Draw reflections first
       objects.forEach(o => drawObject(o, true));
-      // Draw actual objects
       objects.forEach(o => drawObject(o, false));
 
-      // Draw fallen pins (simplified for performance)
+      // Draw fallen pins flat
       s.pins.forEach(obj => {
          if (!obj.up) {
-            const p = project(obj.x, obj.y, obj.r);
+            const p = project(obj.x, obj.y, obj.r || PIN_RADIUS);
             ctx.fillStyle = "rgba(200, 200, 200, 0.4)";
             ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r*1.2, p.r*0.4, obj.vx*5, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = "rgba(229, 57, 53, 0.4)";
@@ -479,7 +450,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
          }
       });
 
-      // Sparks
       s.particles.forEach(p => {
          const pp = project(p.x, p.y, 0);
          ctx.fillStyle = "#ffeb3b";
@@ -488,7 +458,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
          ctx.globalAlpha = 1;
       });
 
-      // Aiming UI (Trajectory Prediction)
       if (s.state === "aiming" && s.drag) {
          const dy = Math.max(0, s.drag.currentY - s.drag.startY);
          const dx = s.drag.currentX - s.drag.startX;
@@ -510,7 +479,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             const pp = project(px, py, 0);
             ctx.moveTo(pp.x, pp.y);
             
-            // Predict path
             for(let i=0; i<30; i++) {
                px += pvx;
                py += initVy;
@@ -523,14 +491,12 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Arrow head
             ctx.fillStyle = `rgba(0, 229, 255, ${power})`;
             const arrowP = project(px, py, 0);
             ctx.beginPath(); ctx.arc(arrowP.x, arrowP.y, 10 * arrowP.scale, 0, Math.PI*2); ctx.fill();
          }
       }
 
-      // Messages (STRIKE, etc)
       s.messages.forEach(m => {
          ctx.save();
          ctx.globalAlpha = Math.min(1, m.life / 20);
@@ -543,7 +509,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
          ctx.restore();
       });
 
-      ctx.restore(); // Restore camera shake
+      ctx.restore(); 
     };
 
     frame = requestAnimationFrame(loop);
@@ -558,7 +524,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
   }, [finishThrow]);
 
   const restart = () => {
-    stateRef.current = null; // force re-init
+    stateRef.current = null; 
     setHud({ score: 0, throws: 3, phase: "playing" });
   };
 
