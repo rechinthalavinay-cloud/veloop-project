@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { GameShell } from "./GameShell";
 import "./NutCraft.css";
 
@@ -11,8 +11,8 @@ function generateLevelData(levelIdx) {
   const planks = [];
   
   const randPt = () => ({
-    x: 40 + Math.floor(Math.random() * 240),
-    y: 60 + Math.floor(Math.random() * 200)
+    x: 40 + Math.floor(Math.random() * 260),
+    y: 60 + Math.floor(Math.random() * 280)
   });
 
   const tooClose = (pt, minDist = 50) => {
@@ -61,7 +61,7 @@ function generateLevelData(levelIdx) {
   const screwHoles = shuffledActive.slice(emptyActiveCount);
   
   screwHoles.forEach((h, i) => {
-    screws.push({ id: `s${i}`, holeId: h.id });
+    screws.push({ id: `s${i}`, holeId: h.id, rot: 0 });
   });
 
   const finalHoles = [...activeHoles];
@@ -79,7 +79,7 @@ function generateLevelData(levelIdx) {
     const hasS1 = screws.some(s => s.holeId === p.h1);
     const hasS2 = screws.some(s => s.holeId === p.h2);
     if (!hasS1 && !hasS2) {
-      screws.push({ id: `s_rescue_${p.id}`, holeId: p.h1 });
+      screws.push({ id: `s_rescue_${p.id}`, holeId: p.h1, rot: 0 });
     }
   });
 
@@ -89,18 +89,21 @@ function generateLevelData(levelIdx) {
 export function NutCraft({ onOutcome, reviveSignal }) {
   const [phase, setPhase] = useState("playing");
   const [score, setScore] = useState(0);
-  const [time, setTime] = useState(30);
+  const [time, setTime] = useState(45);
+  const [lives, setLives] = useState(3);
   
   const [currentLevelIdx, setCurrentLevelIdx] = useState(0);
   const [levelData, setLevelData] = useState(() => generateLevelData(0));
   
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
-  const [selectedScrew, setSelectedScrew] = useState(null);
   
+  const [dragState, setDragState] = useState(null); // { id, x, y, startHoleId }
+  const [particles, setParticles] = useState([]);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   const liveRef = useRef(true);
-  const scoreRef = useRef(score);
-  scoreRef.current = score;
+  const boardRef = useRef(null);
 
   // Timer
   useEffect(() => {
@@ -111,39 +114,38 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         if (t <= 1) {
           liveRef.current = false;
           setPhase("over");
-          setTimeout(() => onOutcome?.({ type: "over", score: scoreRef.current }), 0);
+          setLives(l => l - 1);
+          setTimeout(() => onOutcome?.({ type: "over", score: score }), 0);
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [phase, onOutcome]);
+  }, [phase, onOutcome, score]);
 
-  // Revive logic
   useEffect(() => {
     if (!reviveSignal) return;
     liveRef.current = true;
-    setTime(t => Math.max(t, 30));
+    setTime(t => Math.max(t, 45));
+    setLives(l => Math.max(l, 1));
     setPhase("playing");
   }, [reviveSignal]);
 
   // Check Win Condition
   useEffect(() => {
-    if (phase === "playing" && fallenPlanks.length === levelData.planks.length) {
+    if (phase === "playing" && fallenPlanks.length === levelData.planks.length && levelData.planks.length > 0) {
       if (currentLevelIdx < 4) {
-        // Next Level
         setScore(s => s + 50 + time * 5);
         const nextIdx = currentLevelIdx + 1;
-        setTime(t => t + 10);
+        setTime(t => t + 15);
         setCurrentLevelIdx(nextIdx);
         const nextData = generateLevelData(nextIdx);
         setLevelData(nextData);
         setScrews(nextData.screws);
         setFallenPlanks([]);
-        setSelectedScrew(null);
+        setDragState(null);
       } else {
-        // Complete Game
         setPhase("complete");
         const finalScore = score + 100 + time * 10;
         setScore(finalScore);
@@ -152,30 +154,95 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     }
   }, [fallenPlanks, phase, score, time, onOutcome, currentLevelIdx, levelData.planks.length]);
 
-  // Interaction Logic
-  const handleScrewClick = (screwId) => {
+  const handlePointerDown = (e, screwId, holeId) => {
     if (phase !== "playing") return;
-    setSelectedScrew(screwId === selectedScrew ? null : screwId);
-  };
-
-  const handleHoleClick = (holeId) => {
-    if (phase !== "playing" || !selectedScrew) return;
+    e.preventDefault();
+    const boardRect = boardRef.current.getBoundingClientRect();
+    const pt = e.touches ? e.touches[0] : e;
+    const x = pt.clientX - boardRect.left;
+    const y = pt.clientY - boardRect.top;
     
-    // Check if hole is occupied
-    const isOccupied = screws.some(s => s.holeId === holeId);
-    if (isOccupied) return;
-
-    // Move screw
-    const newScrews = screws.map(s => s.id === selectedScrew ? { ...s, holeId } : s);
-    setScrews(newScrews);
-    setSelectedScrew(null);
-
-    // Planks evaluate themselves now via onFall callback
+    setHasInteracted(true);
+    setDragState({ id: screwId, startHoleId: holeId, x, y, startX: x, startY: y });
   };
 
-  const handlePlankFall = (plankId) => {
+  const handlePointerMove = (e) => {
+    if (!dragState || phase !== "playing") return;
+    e.preventDefault();
+    const boardRect = boardRef.current.getBoundingClientRect();
+    const pt = e.touches ? e.touches[0] : e;
+    const x = pt.clientX - boardRect.left;
+    const y = pt.clientY - boardRect.top;
+    
+    // Slight rotation while dragging based on movement
+    setDragState(prev => ({ ...prev, x, y }));
+    setScrews(prev => prev.map(s => {
+      if (s.id === dragState.id) {
+        const dx = x - prev.x;
+        return { ...s, rot: s.rot + dx * 2 }; // Rotate while dragging
+      }
+      return s;
+    }));
+  };
+
+  const handlePointerUp = (e) => {
+    if (!dragState || phase !== "playing") return;
+    e.preventDefault();
+    
+    // Find closest hole
+    let closestHole = null;
+    let minDist = 30; // Snap radius
+    
+    levelData.holes.forEach(hole => {
+      const dist = Math.hypot(hole.x - dragState.x, hole.y - dragState.y);
+      if (dist < minDist) {
+        closestHole = hole;
+        minDist = dist;
+      }
+    });
+
+    if (closestHole) {
+      const isOccupied = screws.some(s => s.holeId === closestHole.id && s.id !== dragState.id);
+      if (!isOccupied) {
+        // Snap to new hole
+        setScrews(prev => prev.map(s => s.id === dragState.id ? { ...s, holeId: closestHole.id, rot: s.rot + 90 } : s));
+      }
+    }
+    
+    setDragState(null);
+  };
+
+  const spawnParticles = (x, y) => {
+    const newParts = [];
+    for(let i=0; i<8; i++) {
+      newParts.push({
+        id: Math.random().toString(),
+        x, y,
+        vx: (Math.random()-0.5)*10,
+        vy: (Math.random()-0.5)*10 - 5,
+        life: 1.0
+      });
+    }
+    setParticles(p => [...p, ...newParts]);
+  };
+
+  useEffect(() => {
+    if (particles.length === 0) return;
+    let frame;
+    const update = () => {
+      setParticles(prev => prev.map(p => ({
+        ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.5, life: p.life - 0.03
+      })).filter(p => p.life > 0));
+      frame = requestAnimationFrame(update);
+    };
+    frame = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frame);
+  }, [particles.length]);
+
+  const handlePlankFall = (plankId, anchorX, anchorY) => {
     setFallenPlanks(prev => {
       if (prev.includes(plankId)) return prev;
+      spawnParticles(anchorX, anchorY);
       return [...prev, plankId];
     });
   };
@@ -183,13 +250,15 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const restart = () => {
     setPhase("playing");
     setScore(0);
-    setTime(30);
+    setTime(45);
+    setLives(3);
     setCurrentLevelIdx(0);
     const freshData = generateLevelData(0);
     setLevelData(freshData);
     setScrews(freshData.screws);
     setFallenPlanks([]);
-    setSelectedScrew(null);
+    setDragState(null);
+    setHasInteracted(false);
   };
 
   const togglePause = () => {
@@ -200,7 +269,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     <GameShell 
       title="Nut Craft" 
       score={score} 
-      lives={1} 
+      lives={lives} 
       time={time} 
       level={currentLevelIdx + 1}
       phase={phase} 
@@ -208,10 +277,24 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       onResume={togglePause} 
       onRestart={restart}
     >
-      <div className="nutcraft-board">
+      <div 
+        className="nutcraft-board" 
+        ref={boardRef}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+      >
         <div className="nutcraft-header">
           Level {currentLevelIdx + 1}
         </div>
+
+        {/* Tutorial Overlay */}
+        {!hasInteracted && currentLevelIdx === 0 && (
+          <div className="tutorial-overlay">
+            <h2>DRAG & DROP</h2>
+            <p>Unscrew to drop planks!</p>
+          </div>
+        )}
 
         {/* Render Holes */}
         {levelData.holes.map(hole => (
@@ -219,16 +302,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
             key={hole.id} 
             className="hole" 
             style={{ left: hole.x, top: hole.y }}
-          />
-        ))}
-
-        {/* Render Interactive Hole Zones */}
-        {levelData.holes.map(hole => (
-          <div 
-            key={`zone-${hole.id}`} 
-            className="hole-interactive" 
-            style={{ left: hole.x, top: hole.y }}
-            onClick={() => handleHoleClick(hole.id)}
           />
         ))}
 
@@ -249,23 +322,40 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         {/* Render Screws */}
         {screws.map(screw => {
           const hole = levelData.holes.find(h => h.id === screw.holeId);
-          const isSelected = selectedScrew === screw.id;
-
-          let className = "screw";
-          if (isSelected) className += " selected";
+          const isDragging = dragState && dragState.id === screw.id;
+          
+          let x = isDragging ? dragState.x : hole.x;
+          let y = isDragging ? dragState.y : hole.y;
 
           return (
             <div
               key={screw.id}
-              className={className}
-              style={{ left: hole.x, top: hole.y }}
-              onClick={() => handleScrewClick(screw.id)}
+              className={`screw ${isDragging ? 'dragging' : ''}`}
+              style={{ 
+                left: x, top: y,
+                // Only animate transform/rotation if NOT dragging (for smooth snaps)
+                transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              }}
+              onPointerDown={(e) => handlePointerDown(e, screw.id, hole.id)}
             >
-              <div className="screw-cross" />
+              <div className="screw-cross" style={{ transform: `rotate(${45 + screw.rot}deg)` }} />
             </div>
           );
         })}
+
+        {/* Render Particles */}
+        {particles.map(p => (
+          <div key={p.id} className="splinter" style={{ left: p.x, top: p.y, transform: `rotate(${p.vx * 10}deg)`, opacity: p.life }} />
+        ))}
+
       </div>
+
+      {/* Override GameShell HUD visually here since we use GameShell. But we can add a styled custom timer style */}
+      <style>{`
+        #game-time { 
+          ${time <= 10 ? 'color: #ff5252 !important; animation: pulseTimer 1s infinite;' : ''}
+        }
+      `}</style>
     </GameShell>
   );
 }
@@ -288,22 +378,21 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
 
   const isFallen = fallen.includes(plank.id);
 
-  useEffect(() => {
-    if (!hasS1 && !hasS2 && !isFallen) {
-      onFall(plank.id);
-    }
-  }, [hasS1, hasS2, isFallen, plank.id, onFall]);
-
   // We need to keep the last anchor to fall from
   const anchorRef = useRef(plank.h1);
   if (hasS1 && !hasS2) anchorRef.current = plank.h1;
   if (!hasS1 && hasS2) anchorRef.current = plank.h2;
-  // If both have screws, anchor is h1.
   if (hasS1 && hasS2) anchorRef.current = plank.h1;
 
   const isH1 = anchorRef.current === plank.h1;
   const anchorHole = isH1 ? p1 : p2;
-  
+
+  useEffect(() => {
+    if (!hasS1 && !hasS2 && !isFallen) {
+      onFall(plank.id, anchorHole.x, anchorHole.y);
+    }
+  }, [hasS1, hasS2, isFallen, plank.id, onFall, anchorHole.x, anchorHole.y]);
+
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   const length = Math.hypot(dx, dy);
@@ -317,11 +406,11 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
     targetAngle = isH1 ? 90 : -90;
   }
 
-  // If it's fallen, we add a translateY first so it falls globally down
-  let wrapperTransform = isFallen ? `translateY(800px) ` : ``;
+  // Realistic Physics Drop Animation
+  let wrapperTransform = isFallen ? `translateY(600px) ` : ``;
   wrapperTransform += `rotate(${targetAngle}deg)`;
   if (isFallen) {
-    wrapperTransform += ` rotate(45deg)`;
+    wrapperTransform += ` rotate(${isH1 ? 120 : -120}deg)`;
   }
 
   return (
@@ -330,7 +419,7 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
       left: anchorHole.x, 
       top: anchorHole.y,
       transform: wrapperTransform,
-      transition: hasS1 && hasS2 ? 'none' : 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s',
+      transition: hasS1 && hasS2 ? 'none' : 'transform 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.5s ease-in',
       zIndex: plank.z,
     }}>
       <div className={`plank ${plank.color}`} style={{
