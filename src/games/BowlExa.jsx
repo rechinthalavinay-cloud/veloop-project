@@ -42,9 +42,9 @@ const playSound = (type, ctxRef) => {
 };
 
 // Physics and Projection
-const PIN_RADIUS = 0.06;
-const BALL_RADIUS = 0.12;
-const STATE_VERSION = 2; // Bump version to clear old hot-reloaded state
+const PIN_RADIUS = 0.055;
+const BALL_RADIUS = 0.11;
+const STATE_VERSION = 3;
 
 export function BowlExa({ onOutcome, reviveSignal }) {
   const canvasRef = useRef(null);
@@ -53,27 +53,27 @@ export function BowlExa({ onOutcome, reviveSignal }) {
   const [hud, setHud] = useState({ score: 0, throws: 3, phase: "playing" });
 
   const initPins = () => {
-    // Exactly 6 pins in a triangle
+    // Tighter realistic 6-pin triangle
     return [
-      { id: 0, x: 0, y: 0.85, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
-      { id: 1, x: -0.15, y: 0.90, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
-      { id: 2, x: 0.15, y: 0.90, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
-      { id: 3, x: -0.3, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
-      { id: 4, x: 0, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
-      { id: 5, x: 0.3, y: 0.95, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1 },
+      { id: 0, x: 0, y: 0.8, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
+      { id: 1, x: -0.12, y: 0.9, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
+      { id: 2, x: 0.12, y: 0.9, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
+      { id: 3, x: -0.24, y: 1.0, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
+      { id: 4, x: 0, y: 1.0, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
+      { id: 5, x: 0.24, y: 1.0, vx: 0, vy: 0, up: true, r: PIN_RADIUS, mass: 1, rotX: 0, rotY: 0 },
     ];
   };
 
   const initState = () => ({
     version: STATE_VERSION,
     pins: initPins(),
-    ball: { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0, r: BALL_RADIUS },
+    ball: { x: 0, y: 0, vx: 0, vy: 0, active: false, spin: 0, mass: 12, rotX: 0, rotY: 0, r: BALL_RADIUS },
     score: 0,
     throws: 3,
     state: "idle", // idle, aiming, rolling, resetting
     drag: null,
     particles: [],
-    messages: [], // floating text
+    messages: [], 
     rollSoundTimer: 0,
     cameraShake: 0
   });
@@ -98,7 +98,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     
     let gained = knockedCount * 10;
     if (knockedCount === 6) {
-      gained += 40; // STRIKE bonus
+      gained += 40; 
       playSound("strike", audioCtxRef);
       s.messages.push({ text: "STRIKE!", life: 100, scale: 2, color: "#ffeb3b" });
     } else if (knockedCount > 0) {
@@ -111,7 +111,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     const allDown = s.pins.every(p => !p.up);
     if (allDown) s.pins = initPins();
     
-    s.ball = { x: 0, y: -0.1, vx: 0, vy: 0, active: false, spin: 0, mass: 10, rotX: 0, rotY: 0, r: BALL_RADIUS };
+    s.ball = { x: 0, y: 0, vx: 0, vy: 0, active: false, spin: 0, mass: 12, rotX: 0, rotY: 0, r: BALL_RADIUS };
     s.state = "idle";
     
     updateHud(s);
@@ -129,7 +129,6 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     const ctx = canvas.getContext("2d");
     const W = 360, H = 520;
     
-    // Clear old state from hot-reloads
     if (!stateRef.current || stateRef.current.version !== STATE_VERSION) {
       stateRef.current = initState();
     }
@@ -137,10 +136,10 @@ export function BowlExa({ onOutcome, reviveSignal }) {
     setHud({ score: s.score, throws: s.throws, phase: "playing" });
 
     // Perspective projection
-    const project = (x, y, radius) => {
+    const project = (x, y, radius, heightOffset = 0) => {
       // y goes from -0.2 (player) to 1.5 (pit)
       const scale = 1.2 / (1.5 + y);
-      const screenY = H - 50 - (y * 380 * scale);
+      const screenY = H - 50 - (y * 380 * scale) - (heightOffset * 300 * scale);
       const screenX = W / 2 + (x * 200 * scale);
       return { x: screenX, y: screenY, r: (radius || 0.05) * 300 * scale, scale };
     };
@@ -150,11 +149,13 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       if (e.cancelable) e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pt = e.touches ? e.touches[0] : e;
-      const x = pt.clientX - rect.left;
-      const y = pt.clientY - rect.top;
+      
+      // Fix: Scale the DOM coordinates to the canvas internal resolution
+      const x = (pt.clientX - rect.left) * (W / rect.width);
+      const y = (pt.clientY - rect.top) * (H / rect.height);
       
       const bp = project(s.ball.x, s.ball.y, s.ball.r || BALL_RADIUS);
-      if (Math.hypot(x - bp.x, y - bp.y) < bp.r + 50) {
+      if (Math.hypot(x - bp.x, y - bp.y) < bp.r + 60) {
         s.state = "aiming";
         s.drag = { startX: x, startY: y, currentX: x, currentY: y };
       }
@@ -165,21 +166,22 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       if (e.cancelable) e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pt = e.touches ? e.touches[0] : e;
-      s.drag.currentX = pt.clientX - rect.left;
-      s.drag.currentY = pt.clientY - rect.top;
+      s.drag.currentX = (pt.clientX - rect.left) * (W / rect.width);
+      s.drag.currentY = (pt.clientY - rect.top) * (H / rect.height);
     };
 
     const handlePtrUp = (e) => {
       if (s.state !== "aiming" || !s.drag) return;
       
-      const dy = s.drag.currentY - s.drag.startY; 
-      const dx = s.drag.currentX - s.drag.startX;
+      // Fix: SWIPE FORWARD (drag UP) instead of slingshot
+      const dy = s.drag.startY - s.drag.currentY; // positive means swipe up
+      const dx = s.drag.currentX - s.drag.startX; // positive means swipe right
       
       if (dy > 30) { 
-        const power = Math.min(1, dy / 200); 
-        s.ball.vy = 0.02 + (power * 0.06); 
-        s.ball.vx = (dx / 200) * 0.02; 
-        s.ball.spin = -(dx / dy) * 0.001; 
+        const power = Math.min(1.2, dy / 150); 
+        s.ball.vy = 0.02 + (power * 0.05); // Forward speed
+        s.ball.vx = (dx / 200) * 0.02; // Lateral aim
+        s.ball.spin = (dx / dy) * 0.0015; // Spin/curve
         s.ball.active = true;
         s.state = "rolling";
       } else {
@@ -227,18 +229,23 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         
         if (b.mass === 1 && b.up) { 
           b.up = false; 
+          b.vy += 0.05; // Knock back
+          b.rotX = Math.random() - 0.5; // Wobble when fallen
+          b.rotY = Math.random() - 0.5;
           s.cameraShake = Math.max(s.cameraShake, 6);
           playSound("hit", audioCtxRef);
-          for(let i=0; i<5; i++) {
+          for(let i=0; i<6; i++) {
             s.particles.push({
               x: b.x, y: b.y,
-              vx: (Math.random()-0.5)*0.03, vy: (Math.random()-0.5)*0.03,
-              life: 1.0, size: 2
+              vx: (Math.random()-0.5)*0.04, vy: (Math.random()-0.5)*0.04,
+              life: 1.0, size: 2.5
             });
           }
         }
         if (a.mass === 1 && a.up) {
           a.up = false;
+          a.rotX = Math.random() - 0.5;
+          a.rotY = Math.random() - 0.5;
         }
       }
     };
@@ -256,23 +263,24 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         s.ball.rotY += s.ball.vx * 10;
         
         s.rollSoundTimer++;
-        if (s.rollSoundTimer > 15) {
+        if (s.rollSoundTimer > 12 && s.ball.y < 1.3) {
           playSound("roll", audioCtxRef);
           s.rollSoundTimer = 0;
         }
 
-        s.ball.vx *= 0.992;
+        s.ball.vx *= 0.99;
         s.ball.vy *= 0.995;
 
-        if (s.ball.x < -0.7) { s.ball.x = -0.7; s.ball.vx *= -0.5; }
-        if (s.ball.x > 0.7) { s.ball.x = 0.7; s.ball.vx *= -0.5; }
+        // Gutters
+        if (s.ball.x < -0.7) { s.ball.x = -0.7; s.ball.vx *= -0.4; }
+        if (s.ball.x > 0.7) { s.ball.x = 0.7; s.ball.vx *= -0.4; }
         
         for (const p of s.pins) {
           if (p.up || Math.hypot(p.vx, p.vy) > 0.001) {
             p.x += p.vx;
             p.y += p.vy;
-            p.vx *= 0.94;
-            p.vy *= 0.94;
+            p.vx *= 0.92;
+            p.vy *= 0.92;
             
             if (p.x < -0.8 || p.x > 0.8 || p.y > 1.4) {
                p.vx = 0; p.vy = 0; p.up = false;
@@ -283,13 +291,13 @@ export function BowlExa({ onOutcome, reviveSignal }) {
 
         for (let i = 0; i < s.pins.length; i++) {
           for (let j = i + 1; j < s.pins.length; j++) {
-            if (!s.pins[i].up || !s.pins[j].up || s.pins[i].y > 0.5) {
+            if (!s.pins[i].up || !s.pins[j].up || s.pins[i].y > 0.6) {
               resolveCollision(s.pins[i], s.pins[j]);
             }
           }
         }
 
-        if (s.ball.y > 1.3 || (s.ball.vy < 0.001 && s.ball.y > 0.2)) {
+        if (s.ball.y > 1.4 || (s.ball.vy < 0.001 && s.ball.y > 0.2)) {
           resetTimer++;
           if (resetTimer > 60) {
             s.state = "resetting";
@@ -317,73 +325,88 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         if (s.cameraShake < 0.5) s.cameraShake = 0;
       }
 
-      // Background Arcade Environment
+      // Background Arcade Environment (Deeper, darker cyber theme)
       const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, "#050014");
-      bgGrad.addColorStop(0.4, "#2a0042");
+      bgGrad.addColorStop(0, "#02000d");
+      bgGrad.addColorStop(0.3, "#10002b");
       bgGrad.addColorStop(1, "#000000");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
       
-      const horizonY = project(0, 1.5, 0).y;
-      ctx.strokeStyle = "#e91e63";
-      ctx.lineWidth = 2;
+      const horizonY = project(0, 1.4, 0).y;
+      
+      // Neon Horizon Glow
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(W, horizonY); ctx.stroke();
-      ctx.shadowColor = "#e91e63"; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.shadowColor = "#00e5ff"; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
 
+      // Realistic Glossy Wood/Cyber Lane
       const laneGrad = ctx.createLinearGradient(0, H, 0, horizonY);
-      laneGrad.addColorStop(0, "#4a148c"); 
-      laneGrad.addColorStop(1, "#050014");
+      laneGrad.addColorStop(0, "#311059"); 
+      laneGrad.addColorStop(0.6, "#15002b");
+      laneGrad.addColorStop(1, "#0a001a");
       ctx.fillStyle = laneGrad;
       ctx.beginPath();
-      const tl = project(-0.8, 1.5, 0);
-      const tr = project(0.8, 1.5, 0);
-      const bl = project(-0.8, -0.2, 0);
-      const br = project(0.8, -0.2, 0);
+      const tl = project(-0.7, 1.4, 0);
+      const tr = project(0.7, 1.4, 0);
+      const bl = project(-0.7, -0.1, 0);
+      const br = project(0.7, -0.1, 0);
       ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(bl.x, bl.y);
       ctx.fill();
 
-      ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 3;
+      // Lane Edge Lasers
+      ctx.strokeStyle = "#e91e63"; 
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "#e91e63";
+      ctx.shadowBlur = 10;
       ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(bl.x, bl.y); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.stroke();
+      ctx.shadowBlur = 0;
 
       const drawObject = (obj, isReflect) => {
         if (obj.type === 'pin') {
-          if (!obj.up) return; // Do not draw fallen pins as 3D (they are drawn as flat shadows later)
+          if (!obj.up && !isReflect) return; 
+          if (!obj.up && isReflect) return; // Don't draw reflections for fallen pins
+          
           const p = project(obj.x, obj.y, obj.r || PIN_RADIUS);
           if (p.y < horizonY) return;
           
           ctx.save();
           if (isReflect) {
-            ctx.globalAlpha = 0.3;
-            ctx.translate(p.x, p.y + p.r*4);
+            ctx.globalAlpha = 0.25;
+            ctx.translate(p.x, p.y + p.r*3.5);
             ctx.scale(1, -1);
             ctx.translate(-p.x, -p.y);
           }
           
           if (!isReflect) {
+            // Shadow
             ctx.fillStyle = "rgba(0,0,0,0.6)";
-            ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.3, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.2, p.r*1.1, p.r*0.4, 0, 0, Math.PI*2); ctx.fill();
           }
 
-          const pinGrad = ctx.createLinearGradient(p.x - p.r, 0, p.x + p.r, 0);
-          pinGrad.addColorStop(0, "#b0bec5");
+          // Detailed Realistic Pin Shape
+          const pinGrad = ctx.createLinearGradient(p.x - p.r*0.8, 0, p.x + p.r*0.8, 0);
+          pinGrad.addColorStop(0, "#9ea7aa");
           pinGrad.addColorStop(0.3, "#ffffff");
-          pinGrad.addColorStop(0.8, "#eceff1");
-          pinGrad.addColorStop(1, "#90a4ae");
+          pinGrad.addColorStop(0.8, "#e0e4e6");
+          pinGrad.addColorStop(1, "#78909c");
           
           ctx.fillStyle = pinGrad;
           ctx.beginPath();
-          ctx.moveTo(p.x - p.r, p.y);
-          ctx.bezierCurveTo(p.x - p.r, p.y - p.r*2.5, p.x - p.r*0.4, p.y - p.r*3, p.x, p.y - p.r*3.5);
-          ctx.bezierCurveTo(p.x + p.r*0.4, p.y - p.r*3, p.x + p.r, p.y - p.r*2.5, p.x + p.r, p.y);
-          ctx.bezierCurveTo(p.x + p.r, p.y + p.r*0.5, p.x - p.r, p.y + p.r*0.5, p.x - p.r, p.y);
+          ctx.moveTo(p.x - p.r * 0.5, p.y); // Base
+          ctx.bezierCurveTo(p.x - p.r * 0.8, p.y - p.r * 0.5, p.x - p.r * 0.9, p.y - p.r * 1.5, p.x - p.r * 0.5, p.y - p.r * 2.2); // Belly to neck
+          ctx.bezierCurveTo(p.x - p.r * 0.3, p.y - p.r * 2.6, p.x - p.r * 0.3, p.y - p.r * 3.2, p.x, p.y - p.r * 3.6); // Neck to head
+          ctx.bezierCurveTo(p.x + p.r * 0.3, p.y - p.r * 3.2, p.x + p.r * 0.3, p.y - p.r * 2.6, p.x + p.r * 0.5, p.y - p.r * 2.2); // Head to neck
+          ctx.bezierCurveTo(p.x + p.r * 0.9, p.y - p.r * 1.5, p.x + p.r * 0.8, p.y - p.r * 0.5, p.x + p.r * 0.5, p.y); // Belly to base
           ctx.fill();
           
-          ctx.strokeStyle = "#e53935";
-          ctx.lineWidth = p.r * 0.4;
-          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.5, p.y - p.r*2); ctx.lineTo(p.x + p.r*0.5, p.y - p.r*2); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.4, p.y - p.r*1.3); ctx.lineTo(p.x + p.r*0.4, p.y - p.r*1.3); ctx.stroke();
+          // Realistic Red Stripes
+          ctx.strokeStyle = "#d32f2f";
+          ctx.lineWidth = p.r * 0.3;
+          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.4, p.y - p.r*2.1); ctx.lineTo(p.x + p.r*0.4, p.y - p.r*2.1); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(p.x - p.r*0.35, p.y - p.r*1.5); ctx.lineTo(p.x + p.r*0.35, p.y - p.r*1.5); ctx.stroke();
 
           ctx.restore();
         } else if (obj.type === 'ball') {
@@ -393,25 +416,25 @@ export function BowlExa({ onOutcome, reviveSignal }) {
           ctx.save();
           if (isReflect) {
             ctx.globalAlpha = 0.2;
-            ctx.translate(p.x, p.y + p.r*2);
+            ctx.translate(p.x, p.y + p.r*1.5);
             ctx.scale(1, -1);
             ctx.translate(-p.x, -p.y);
           }
 
           if (!isReflect) {
              ctx.fillStyle = "rgba(0,0,0,0.8)";
-             ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.2, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
+             ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.1, p.r*0.4, 0, 0, Math.PI*2); ctx.fill();
           }
 
           const bGrad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
-          bGrad.addColorStop(0, "#ce93d8");
-          bGrad.addColorStop(0.3, "#8e24aa");
-          bGrad.addColorStop(1, "#4a148c");
+          bGrad.addColorStop(0, "#e040fb"); // Brighter highlight
+          bGrad.addColorStop(0.3, "#aa00ff");
+          bGrad.addColorStop(1, "#311b92"); // Deep core
           ctx.fillStyle = bGrad;
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
           
-          ctx.fillStyle = "rgba(255,255,255,0.3)";
-          ctx.beginPath(); ctx.arc(p.x - p.r*0.4, p.y - p.r*0.4, p.r*0.2, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.beginPath(); ctx.arc(p.x - p.r*0.4, p.y - p.r*0.4, p.r*0.15, 0, Math.PI*2); ctx.fill();
 
           if (!isReflect) {
             ctx.save();
@@ -442,11 +465,16 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       s.pins.forEach(obj => {
          if (!obj.up) {
             const p = project(obj.x, obj.y, obj.r || PIN_RADIUS);
-            ctx.fillStyle = "rgba(200, 200, 200, 0.4)";
-            ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r*1.2, p.r*0.4, obj.vx*5, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "rgba(229, 57, 53, 0.4)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            // Draw a simplified knocked-over cylinder shape
+            ctx.fillStyle = "rgba(120, 144, 156, 0.9)"; // Solid grey body
+            ctx.rotate(obj.rotX * 2);
+            ctx.beginPath(); ctx.ellipse(0, 0, p.r*1.4, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "rgba(229, 57, 53, 0.8)"; // Red stripe
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(-p.r*0.5, -p.r*0.3); ctx.lineTo(-p.r*0.5, p.r*0.3); ctx.stroke();
+            ctx.restore();
          }
       });
 
@@ -458,19 +486,21 @@ export function BowlExa({ onOutcome, reviveSignal }) {
          ctx.globalAlpha = 1;
       });
 
+      // Aiming UI: Swipe FORWARD prediction
       if (s.state === "aiming" && s.drag) {
-         const dy = Math.max(0, s.drag.currentY - s.drag.startY);
+         const dy = Math.max(0, s.drag.startY - s.drag.currentY); // Swipe UP is positive power
          const dx = s.drag.currentX - s.drag.startX;
+         
          if (dy > 10) {
-            const power = Math.min(1, dy / 200);
+            const power = Math.min(1.2, dy / 150);
             const initVx = (dx / 200) * 0.02;
-            const initVy = 0.02 + (power * 0.06);
-            const spin = -(dx / dy) * 0.001;
+            const initVy = 0.02 + (power * 0.05);
+            const spin = (dx / dy) * 0.0015;
             
-            ctx.strokeStyle = `rgba(0, 229, 255, ${power})`;
-            ctx.lineWidth = 4;
-            ctx.setLineDash([10, 10]);
-            ctx.lineDashOffset = -s.tick;
+            ctx.strokeStyle = `rgba(0, 229, 255, ${Math.min(1, power)})`;
+            ctx.lineWidth = 3 + power * 2;
+            ctx.setLineDash([15, 10]);
+            ctx.lineDashOffset = -s.tick * 2;
             ctx.beginPath();
             
             let px = s.ball.x;
@@ -483,7 +513,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
                px += pvx;
                py += initVy;
                pvx += spin;
-               pvx *= 0.992;
+               pvx *= 0.99;
                if (px < -0.7 || px > 0.7) pvx *= -0.5;
                const nextP = project(px, py, 0);
                ctx.lineTo(nextP.x, nextP.y);
@@ -491,9 +521,9 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            ctx.fillStyle = `rgba(0, 229, 255, ${power})`;
+            ctx.fillStyle = `rgba(0, 229, 255, ${Math.min(1, power)})`;
             const arrowP = project(px, py, 0);
-            ctx.beginPath(); ctx.arc(arrowP.x, arrowP.y, 10 * arrowP.scale, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(arrowP.x, arrowP.y - 5); ctx.lineTo(arrowP.x - 8, arrowP.y + 10); ctx.lineTo(arrowP.x + 8, arrowP.y + 10); ctx.fill();
          }
       }
 
@@ -504,7 +534,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
          ctx.font = `900 ${m.scale * 24}px sans-serif`;
          ctx.textAlign = "center";
          ctx.shadowColor = m.color;
-         ctx.shadowBlur = 10;
+         ctx.shadowBlur = 15;
          ctx.fillText(m.text, W/2, H/2 - (100 - m.life));
          ctx.restore();
       });
@@ -546,7 +576,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
           style={{ width: "100%", height: "auto", display: "block", touchAction: "none", borderRadius: 12 }} />
       </div>
       <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem", textAlign: "center", padding: "12px 0 0" }}>
-        Drag the ball backwards to aim & set power.
+        Swipe FORWARD to aim and set power.
       </p>
     </GameShell>
   );
