@@ -4,6 +4,48 @@ import "./NutCraft.css";
 
 const COLORS = ["blue", "green", "brown", "red", "purple", "orange", "teal", "pink"];
 
+// Audio Synthesizer
+const playSound = (type, ctxRef) => {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  const actx = ctxRef.current;
+  if (actx.state === "suspended") actx.resume();
+
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.connect(gain);
+  gain.connect(actx.destination);
+
+  if (type === "unscrew") {
+    // Metallic twisting sound
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(400, actx.currentTime);
+    osc.frequency.linearRampToValueAtTime(600, actx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.15);
+    osc.start();
+    osc.stop(actx.currentTime + 0.15);
+  } else if (type === "screw") {
+    // Metallic lock sound
+    osc.type = "square";
+    osc.frequency.setValueAtTime(800, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, actx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.1);
+    osc.start();
+    osc.stop(actx.currentTime + 0.1);
+  } else if (type === "drop") {
+    // Wooden thud
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(150, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.4, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, actx.currentTime + 0.3);
+    osc.start();
+    osc.stop(actx.currentTime + 0.3);
+  }
+};
+
 function generateLevelData(levelIdx) {
   const numPlanks = Math.min(2 + Math.floor(levelIdx * 1.5), 10);
   const holes = [];
@@ -61,7 +103,7 @@ function generateLevelData(levelIdx) {
   const screwHoles = shuffledActive.slice(emptyActiveCount);
   
   screwHoles.forEach((h, i) => {
-    screws.push({ id: `s${i}`, holeId: h.id, rot: 0 });
+    screws.push({ id: `s${i}`, holeId: h.id });
   });
 
   const finalHoles = [...activeHoles];
@@ -79,7 +121,7 @@ function generateLevelData(levelIdx) {
     const hasS1 = screws.some(s => s.holeId === p.h1);
     const hasS2 = screws.some(s => s.holeId === p.h2);
     if (!hasS1 && !hasS2) {
-      screws.push({ id: `s_rescue_${p.id}`, holeId: p.h1, rot: 0 });
+      screws.push({ id: `s_rescue_${p.id}`, holeId: p.h1 });
     }
   });
 
@@ -87,7 +129,7 @@ function generateLevelData(levelIdx) {
 }
 
 export function NutCraft({ onOutcome, reviveSignal }) {
-  const [phase, setPhase] = useState("playing");
+  const [phase, setPhase] = useState("playing"); // playing, level_complete, over, complete
   const [score, setScore] = useState(0);
   const [time, setTime] = useState(45);
   const [lives, setLives] = useState(3);
@@ -98,12 +140,13 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
   
-  const [dragState, setDragState] = useState(null); // { id, x, y, startHoleId }
+  const [selectedScrew, setSelectedScrew] = useState(null);
   const [particles, setParticles] = useState([]);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const liveRef = useRef(true);
   const boardRef = useRef(null);
+  const audioCtxRef = useRef(null);
 
   // Timer
   useEffect(() => {
@@ -136,15 +179,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   useEffect(() => {
     if (phase === "playing" && fallenPlanks.length === levelData.planks.length && levelData.planks.length > 0) {
       if (currentLevelIdx < 4) {
+        setPhase("level_complete");
         setScore(s => s + 50 + time * 5);
-        const nextIdx = currentLevelIdx + 1;
-        setTime(t => t + 15);
-        setCurrentLevelIdx(nextIdx);
-        const nextData = generateLevelData(nextIdx);
-        setLevelData(nextData);
-        setScrews(nextData.screws);
-        setFallenPlanks([]);
-        setDragState(null);
       } else {
         setPhase("complete");
         const finalScore = score + 100 + time * 10;
@@ -154,72 +190,49 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     }
   }, [fallenPlanks, phase, score, time, onOutcome, currentLevelIdx, levelData.planks.length]);
 
-  const handlePointerDown = (e, screwId, holeId) => {
+  const handleNextLevel = () => {
+    const nextIdx = currentLevelIdx + 1;
+    setTime(t => t + 20);
+    setCurrentLevelIdx(nextIdx);
+    const nextData = generateLevelData(nextIdx);
+    setLevelData(nextData);
+    setScrews(nextData.screws);
+    setFallenPlanks([]);
+    setSelectedScrew(null);
+    setPhase("playing");
+  };
+
+  const handleScrewClick = (screwId) => {
     if (phase !== "playing") return;
-    e.preventDefault();
-    const boardRect = boardRef.current.getBoundingClientRect();
-    const pt = e.touches ? e.touches[0] : e;
-    const x = pt.clientX - boardRect.left;
-    const y = pt.clientY - boardRect.top;
-    
     setHasInteracted(true);
-    setDragState({ id: screwId, startHoleId: holeId, x, y, startX: x, startY: y });
-  };
-
-  const handlePointerMove = (e) => {
-    if (!dragState || phase !== "playing") return;
-    e.preventDefault();
-    const boardRect = boardRef.current.getBoundingClientRect();
-    const pt = e.touches ? e.touches[0] : e;
-    const x = pt.clientX - boardRect.left;
-    const y = pt.clientY - boardRect.top;
-    
-    // Slight rotation while dragging based on movement
-    setDragState(prev => ({ ...prev, x, y }));
-    setScrews(prev => prev.map(s => {
-      if (s.id === dragState.id) {
-        const dx = x - prev.x;
-        return { ...s, rot: s.rot + dx * 2 }; // Rotate while dragging
-      }
-      return s;
-    }));
-  };
-
-  const handlePointerUp = (e) => {
-    if (!dragState || phase !== "playing") return;
-    e.preventDefault();
-    
-    // Find closest hole
-    let closestHole = null;
-    let minDist = 30; // Snap radius
-    
-    levelData.holes.forEach(hole => {
-      const dist = Math.hypot(hole.x - dragState.x, hole.y - dragState.y);
-      if (dist < minDist) {
-        closestHole = hole;
-        minDist = dist;
-      }
-    });
-
-    if (closestHole) {
-      const isOccupied = screws.some(s => s.holeId === closestHole.id && s.id !== dragState.id);
-      if (!isOccupied) {
-        // Snap to new hole
-        setScrews(prev => prev.map(s => s.id === dragState.id ? { ...s, holeId: closestHole.id, rot: s.rot + 90 } : s));
-      }
+    if (selectedScrew === screwId) {
+      setSelectedScrew(null);
+      playSound("screw", audioCtxRef);
+    } else {
+      setSelectedScrew(screwId);
+      playSound("unscrew", audioCtxRef);
     }
-    
-    setDragState(null);
+  };
+
+  const handleHoleClick = (holeId) => {
+    if (phase !== "playing" || !selectedScrew) return;
+    const isOccupied = screws.some(s => s.holeId === holeId);
+    if (isOccupied) return;
+
+    // Move screw
+    setScrews(screws.map(s => s.id === selectedScrew ? { ...s, holeId } : s));
+    setSelectedScrew(null);
+    playSound("screw", audioCtxRef);
   };
 
   const spawnParticles = (x, y) => {
     const newParts = [];
-    for(let i=0; i<8; i++) {
+    for(let i=0; i<6; i++) {
       newParts.push({
         id: Math.random().toString(),
         x, y,
-        vx: (Math.random()-0.5)*10,
-        vy: (Math.random()-0.5)*10 - 5,
+        vx: (Math.random()-0.5)*8,
+        vy: (Math.random()-0.5)*8 - 4,
         life: 1.0
       });
     }
@@ -231,7 +244,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     let frame;
     const update = () => {
       setParticles(prev => prev.map(p => ({
-        ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.5, life: p.life - 0.03
+        ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.4, life: p.life - 0.04
       })).filter(p => p.life > 0));
       frame = requestAnimationFrame(update);
     };
@@ -242,6 +255,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const handlePlankFall = (plankId, anchorX, anchorY) => {
     setFallenPlanks(prev => {
       if (prev.includes(plankId)) return prev;
+      playSound("drop", audioCtxRef);
       spawnParticles(anchorX, anchorY);
       return [...prev, plankId];
     });
@@ -257,11 +271,12 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     setLevelData(freshData);
     setScrews(freshData.screws);
     setFallenPlanks([]);
-    setDragState(null);
+    setSelectedScrew(null);
     setHasInteracted(false);
   };
 
   const togglePause = () => {
+    if (phase === "level_complete") return;
     setPhase(p => p === "paused" ? "playing" : "paused");
   };
 
@@ -272,36 +287,46 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       lives={lives} 
       time={time} 
       level={currentLevelIdx + 1}
-      phase={phase} 
+      phase={phase === "level_complete" ? "playing" : phase} 
       onPause={togglePause} 
       onResume={togglePause} 
       onRestart={restart}
     >
-      <div 
-        className="nutcraft-board" 
-        ref={boardRef}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-      >
-        <div className="nutcraft-header">
-          Level {currentLevelIdx + 1}
-        </div>
+      <div className="nutcraft-board" ref={boardRef}>
 
         {/* Tutorial Overlay */}
         {!hasInteracted && currentLevelIdx === 0 && (
           <div className="tutorial-overlay">
-            <h2>DRAG & DROP</h2>
-            <p>Unscrew to drop planks!</p>
+            <h2>UNSCREW THE NUTS</h2>
+            <p>Move nuts to empty holes to drop the planks!</p>
+          </div>
+        )}
+
+        {/* Level Complete Modal */}
+        {phase === "level_complete" && (
+          <div className="nc-modal">
+            <h1>LEVEL COMPLETE!</h1>
+            <div className="nc-modal-stats">
+              ⭐⭐⭐<br/>
+              Time Left: {time}s<br/>
+              Planks Cleared: {levelData.planks.length}
+            </div>
+            <button className="nc-modal-btn" onClick={handleNextLevel}>
+              NEXT LEVEL
+            </button>
           </div>
         )}
 
         {/* Render Holes */}
         {levelData.holes.map(hole => (
+          <div key={`h-${hole.id}`} className="hole" style={{ left: hole.x, top: hole.y }} />
+        ))}
+        {levelData.holes.map(hole => (
           <div 
-            key={hole.id} 
-            className="hole" 
+            key={`hi-${hole.id}`} 
+            className="hole-interactive" 
             style={{ left: hole.x, top: hole.y }}
+            onClick={() => handleHoleClick(hole.id)}
           />
         ))}
 
@@ -322,38 +347,33 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         {/* Render Screws */}
         {screws.map(screw => {
           const hole = levelData.holes.find(h => h.id === screw.holeId);
-          const isDragging = dragState && dragState.id === screw.id;
-          
-          let x = isDragging ? dragState.x : hole.x;
-          let y = isDragging ? dragState.y : hole.y;
+          const isSelected = selectedScrew === screw.id;
 
           return (
             <div
               key={screw.id}
-              className={`screw ${isDragging ? 'dragging' : ''}`}
-              style={{ 
-                left: x, top: y,
-                // Only animate transform/rotation if NOT dragging (for smooth snaps)
-                transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
-              }}
-              onPointerDown={(e) => handlePointerDown(e, screw.id, hole.id)}
+              className={`screw-interactive ${isSelected ? 'selected' : ''}`}
+              style={{ left: hole.x, top: hole.y }}
+              onClick={() => handleScrewClick(screw.id)}
             >
-              <div className="screw-cross" style={{ transform: `rotate(${45 + screw.rot}deg)` }} />
+              <div className="screw-visual">
+                <div className="screw-cross" />
+              </div>
             </div>
           );
         })}
 
         {/* Render Particles */}
         {particles.map(p => (
-          <div key={p.id} className="splinter" style={{ left: p.x, top: p.y, transform: `rotate(${p.vx * 10}deg)`, opacity: p.life }} />
+          <div key={p.id} className="splinter" style={{ left: p.x, top: p.y, transform: `rotate(${p.vx * 15}deg)`, opacity: p.life }} />
         ))}
 
       </div>
 
-      {/* Override GameShell HUD visually here since we use GameShell. But we can add a styled custom timer style */}
+      {/* Override GameShell HUD visually here since we use GameShell */}
       <style>{`
         #game-time { 
-          ${time <= 10 ? 'color: #ff5252 !important; animation: pulseTimer 1s infinite;' : ''}
+          ${time <= 10 && phase === 'playing' ? 'color: #ff5252 !important; animation: pulseTimer 1s infinite;' : ''}
         }
       `}</style>
     </GameShell>
@@ -369,6 +389,7 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
 
   const detached1 = useRef(false);
   const detached2 = useRef(false);
+  const [shaking, setShaking] = useState(false);
 
   if (!hasS1_current) detached1.current = true;
   if (!hasS2_current) detached2.current = true;
@@ -388,10 +409,15 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   const anchorHole = isH1 ? p1 : p2;
 
   useEffect(() => {
-    if (!hasS1 && !hasS2 && !isFallen) {
-      onFall(plank.id, anchorHole.x, anchorHole.y);
+    if (!hasS1 && !hasS2 && !isFallen && !shaking) {
+      setShaking(true);
+      // Pre-fall shake delay
+      setTimeout(() => {
+        onFall(plank.id, anchorHole.x, anchorHole.y);
+        setShaking(false);
+      }, 150);
     }
-  }, [hasS1, hasS2, isFallen, plank.id, onFall, anchorHole.x, anchorHole.y]);
+  }, [hasS1, hasS2, isFallen, shaking, plank.id, onFall, anchorHole.x, anchorHole.y]);
 
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
@@ -402,24 +428,34 @@ function Plank({ plank, holes, screws, fallen, onFall }) {
   if (hasS1 && hasS2) {
     targetAngle = baseAngle;
   } else {
-    // Swinging!
+    // Swinging naturally down
     targetAngle = isH1 ? 90 : -90;
+    // Keep angle positive/negative aligned for smooth shortest-path rotation
+    if (Math.abs(targetAngle - baseAngle) > 180) {
+       targetAngle = targetAngle > baseAngle ? targetAngle - 360 : targetAngle + 360;
+    }
+  }
+
+  // Shake effect before falling
+  let shakeTransform = "";
+  if (shaking) {
+    shakeTransform = `translate(${(Math.random()-0.5)*6}px, ${(Math.random()-0.5)*6}px) `;
   }
 
   // Realistic Physics Drop Animation
-  let wrapperTransform = isFallen ? `translateY(600px) ` : ``;
+  let wrapperTransform = isFallen ? `translateY(600px) ` : shakeTransform;
   wrapperTransform += `rotate(${targetAngle}deg)`;
   if (isFallen) {
-    wrapperTransform += ` rotate(${isH1 ? 120 : -120}deg)`;
+    wrapperTransform += ` rotate(${isH1 ? 60 : -60}deg)`;
   }
 
   return (
-    <div className={`plank-wrapper ${isFallen ? 'fallen' : ''}`} style={{
+    <div className={`plank-wrapper ${isFallen ? 'fallen' : (shaking ? 'falling' : '')}`} style={{
       position: 'absolute',
       left: anchorHole.x, 
       top: anchorHole.y,
       transform: wrapperTransform,
-      transition: hasS1 && hasS2 ? 'none' : 'transform 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.5s ease-in',
+      transition: hasS1 && hasS2 && !shaking ? 'none' : 'transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.5s ease-in',
       zIndex: plank.z,
     }}>
       <div className={`plank ${plank.color}`} style={{

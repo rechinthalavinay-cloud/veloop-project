@@ -11,11 +11,11 @@
   border-radius: 16px;
   overflow: hidden;
   
-  /* Premium Wood Board Background */
+  /* Slightly darker, more sophisticated board */
   background: 
-    radial-gradient(circle at center, #ffd54f 0%, #f57f17 100%);
+    radial-gradient(circle at center, #dda15e 0%, #bc6c25 100%);
   box-shadow: 
-    inset 0 0 60px rgba(0, 0, 0, 0.6),
+    inset 0 0 80px rgba(0, 0, 0, 0.7),
     0 8px 24px rgba(0, 0, 0, 0.4);
   
   display: flex;
@@ -31,9 +31,9 @@
   background-image: repeating-linear-gradient(
     45deg,
     transparent,
-    transparent 10px,
-    rgba(0, 0, 0, 0.03) 10px,
-    rgba(0, 0, 0, 0.03) 12px
+    transparent 8px,
+    rgba(0, 0, 0, 0.04) 8px,
+    rgba(0, 0, 0, 0.04) 10px
   );
   pointer-events: none;
   z-index: 1;
@@ -47,19 +47,22 @@
   position: absolute;
   width: 24px;
   height: 24px;
-  background: #2d1b0d;
+  
+  /* Realistic recessed hole */
+  background: radial-gradient(circle at center, #1a1a1a 40%, #2d1b0d 90%);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   box-shadow: 
-    inset 0 6px 8px rgba(0,0,0,0.9), 
-    0 1px 1px rgba(255,255,255,0.5);
+    inset 0 6px 10px rgba(0,0,0,1), 
+    0 1px 2px rgba(255,255,255,0.3);
+  border: 1px solid rgba(0,0,0,0.5);
   z-index: 5;
 }
 
 .hole-interactive {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  width: 60px; /* Increased for mobile forgiveness */
+  height: 60px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   cursor: pointer;
@@ -77,38 +80,42 @@
   pointer-events: none;
 }
 
+.plank-wrapper.falling {
+  pointer-events: none;
+}
+
 .plank-wrapper.fallen {
   opacity: 0;
   pointer-events: none;
 }
 
 .plank {
-  /* Premium Plank Base */
+  /* Matte finish wooden plank */
   box-shadow: 
-    0 8px 16px rgba(0,0,0,0.5), 
-    inset 0 2px 4px rgba(255,255,255,0.4),
-    inset 0 -2px 6px rgba(0,0,0,0.4);
-  border: 1px solid rgba(0,0,0,0.6);
+    0 12px 20px rgba(0,0,0,0.4), 
+    inset 0 2px 2px rgba(255,255,255,0.2),
+    inset 0 -3px 6px rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,0,0,0.8);
   display: flex;
   align-items: center;
 }
 
-/* Specific Plank Colors */
-.plank.blue { background: linear-gradient(180deg, #64b5f6, #1976d2); }
-.plank.green { background: linear-gradient(180deg, #81c784, #388e3c); }
-.plank.brown { background: linear-gradient(180deg, #a1887f, #5d4037); }
-.plank.red { background: linear-gradient(180deg, #e57373, #d32f2f); }
-.plank.purple { background: linear-gradient(180deg, #ba68c8, #7b1fa2); }
-.plank.orange { background: linear-gradient(180deg, #ffb74d, #f57c00); }
-.plank.teal { background: linear-gradient(180deg, #4db6ac, #00796b); }
-.plank.pink { background: linear-gradient(180deg, #f06292, #c2185b); }
+/* Specific Plank Colors - Matted/Physical */
+.plank.blue { background: #3b7ba8; }
+.plank.green { background: #4caf50; }
+.plank.brown { background: #795548; }
+.plank.red { background: #d32f2f; }
+.plank.purple { background: #7b1fa2; }
+.plank.orange { background: #f57c00; }
+.plank.teal { background: #00796b; }
+.plank.pink { background: #c2185b; }
 
 /* Premium wood grain overlay */
 .plank-texture {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  opacity: 0.2;
+  opacity: 0.15;
   background-image: repeating-linear-gradient(
     0deg,
     transparent,
@@ -125,9 +132,9 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  background: #2a1b0d;
+  background: radial-gradient(circle at center, #111 40%, #2a1b0d 100%);
   border-radius: 50%;
-  box-shadow: inset 0 3px 5px rgba(0,0,0,0.9);
+  box-shadow: inset 0 3px 6px rgba(0,0,0,1);
 }
 
 .plank::before { left: 8px; }
@@ -137,60 +144,72 @@
    SCREWS (3D PREMIUM)
    ========================================================= */
 
-.screw {
+.screw-interactive {
   position: absolute;
-  width: 34px;
-  height: 34px;
+  width: 60px; /* Highly forgiving touch target */
+  height: 60px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 100; 
+}
+
+.screw-visual {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  left: 14px; /* Center within the 60px interactive wrapper */
+  top: 14px;
   
   /* Bright shiny brass */
-  background: radial-gradient(circle at 30% 20%, #fffde7, #fbc02d, #f57f17);
+  background: radial-gradient(circle at 35% 25%, #fffde7, #fbc02d, #f57f17);
   
   border-radius: 50%;
-  transform: translate(-50%, -50%);
   
   /* Deep shadow + realistic metallic bevel */
   box-shadow: 
-    0 6px 8px rgba(0,0,0,0.6), 
+    0 4px 6px rgba(0,0,0,0.6), 
     inset 0 -3px 6px rgba(0,0,0,0.4), 
-    inset 0 3px 6px rgba(255,255,255,0.8),
-    0 0 0 1px rgba(0,0,0,0.5);
+    inset 0 2px 4px rgba(255,255,255,0.7),
+    0 0 0 1px rgba(0,0,0,0.6);
   
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none; /* Let parent handle clicks */
   
-  cursor: grab;
-  z-index: 100;
-  
-  /* Only transition transform if we are not actively dragging */
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  touch-action: none; /* Prevent scroll on mobile drag */
+  /* Smooth rotation/lift when unscrewed */
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s;
+}
+
+/* The screw when selected (unscrewed) */
+.screw-interactive.selected {
+  z-index: 200 !important; /* Bring to very front */
+}
+.screw-interactive.selected .screw-visual {
+  transform: scale(1.15) translateY(-14px) rotate(90deg);
+  box-shadow: 
+    0 16px 20px rgba(0,0,0,0.5), 
+    inset 0 -3px 6px rgba(0,0,0,0.4), 
+    inset 0 3px 6px rgba(255,255,255,0.9),
+    0 0 0 1px rgba(0,0,0,0.5),
+    0 0 12px rgba(255, 235, 59, 0.6);
+}
+
+.screw-interactive:hover .screw-visual {
+  filter: brightness(1.1);
 }
 
 /* The actual plus/cross indent */
 .screw-cross {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: 
     linear-gradient(to right, transparent 38%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.7) 55%, transparent 62%),
     linear-gradient(to bottom, transparent 38%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.7) 55%, transparent 62%);
   border-radius: 2px;
   transform: rotate(45deg);
-  box-shadow: inset 0 0 2px rgba(255,255,255,0.4);
-}
-
-/* The screw being actively dragged / selected */
-.screw.dragging, .screw.selected {
-  /* Scale up and add a glowing rim */
-  transform: translate(-50%, -50%) scale(1.3) translateY(-10px);
-  box-shadow: 
-    0 16px 24px rgba(0,0,0,0.6), 
-    inset 0 -3px 6px rgba(0,0,0,0.4), 
-    inset 0 3px 6px rgba(255,255,255,0.8),
-    0 0 0 2px #fff9c4,
-    0 0 15px #ffeb3b;
-  z-index: 200;
-  cursor: grabbing;
+  box-shadow: inset 0 0 2px rgba(255,255,255,0.3);
 }
 
 /* =========================================================
@@ -207,13 +226,13 @@
 }
 
 /* =========================================================
-   TUTORIAL / HUD OVERRIDES
+   TUTORIAL / MODALS
    ========================================================= */
 
 .tutorial-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.65);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -221,25 +240,28 @@
   justify-content: center;
   pointer-events: none;
   border-radius: 16px;
-  animation: fadeInOut 2s infinite alternate;
+  animation: fadeInOut 2.5s infinite alternate;
 }
 
 .tutorial-overlay h2 {
   color: #fff;
-  font-size: 24px;
+  font-size: 22px;
   text-shadow: 0 2px 4px #000;
   margin: 0;
+  text-align: center;
+  letter-spacing: 1px;
 }
 
 .tutorial-overlay p {
   color: #fbc02d;
-  font-size: 16px;
+  font-size: 15px;
   text-shadow: 0 1px 2px #000;
   margin-top: 8px;
+  text-align: center;
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0.7; }
+  0% { opacity: 0.6; }
   100% { opacity: 1; }
 }
 
@@ -253,4 +275,59 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
   100% { transform: scale(1); }
+}
+
+/* Level Complete Modal */
+.nc-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nc-modal h1 {
+  font-size: 28px;
+  color: #fbc02d;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.8);
+}
+
+.nc-modal-stats {
+  font-size: 16px;
+  margin-bottom: 30px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.nc-modal-btn {
+  background: linear-gradient(180deg, #4caf50, #2e7d32);
+  border: 2px solid #a5d6a7;
+  color: white;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: transform 0.1s, filter 0.1s;
+}
+
+.nc-modal-btn:hover {
+  filter: brightness(1.2);
+}
+
+.nc-modal-btn:active {
+  transform: scale(0.95);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }
