@@ -477,6 +477,10 @@
     gap: 24px;
     position: relative;
     z-index: 2;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    width: 100%;
   }
 
   .statDivider {
@@ -516,13 +520,16 @@
     border-radius: 100px;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .statGroup:nth-child(1) .statData {
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    margin-left: 12px;
   }
   .statGroup:nth-child(1) .statValue {
     font-size: 1.5rem;
@@ -589,8 +596,8 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 16px;
-    margin: 0 -24px;
-    padding: 0 24px 20px;
+    margin: 0;
+    padding: 0 0 20px 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
