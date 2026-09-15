@@ -48,6 +48,15 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
     let spawn = 0;
     let frame;
 
+    const updateHud = () => {
+      const scoreEl = document.getElementById('ss-score');
+      if (scoreEl) scoreEl.innerText = `⚡ ${scoreRef.current}`;
+      const comboEl = document.getElementById('ss-combo');
+      if (comboEl) comboEl.innerText = `🔥 x${comboRef.current}`;
+      const livesEl = document.getElementById('ss-lives');
+      if (livesEl) livesEl.innerText = "♥".repeat(Math.max(livesRef.current, 0)).padEnd(3, "♡");
+    };
+
     const spawnParticles = (x, y, color) => {
       for (let i = 0; i < 10; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -68,19 +77,19 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
       itemsRef.current.forEach((item) => {
         const dx = item.x - x;
         const dy = item.y - y;
-        if (!item.sliced && dx * dx + dy * dy < 1800) {
+        if (!item.sliced && dx * dx + dy * dy < 2500) { // Increased hit radius for easier touch targeting
           item.sliced = true;
           if (item.kind === "bomb") {
             spawnParticles(item.x, item.y, "#ff4444");
             shakeRef.current = 25;
             flashRef.current = 1;
             playingRef.current = false;
+            setHud({ score: scoreRef.current, lives: livesRef.current, combo: comboRef.current });
             setTimeout(() => onOutcome?.({ type: "over", score: scoreRef.current }), 500);
           } else {
             spawnParticles(item.x, item.y, "#00e5ff");
             hit += 1;
             
-            // Create Splinters (Left and Right halves)
             splintersRef.current.push({
               emoji: item.emoji, x: item.x, y: item.y,
               vx: item.vx - 3, vy: item.vy - 1,
@@ -98,7 +107,9 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         comboRef.current += hit;
         const points = hit * 10 + Math.max(0, comboRef.current - 1) * 5;
         scoreRef.current += points;
-        setHud({ score: scoreRef.current, lives: livesRef.current, combo: comboRef.current });
+        
+        // Fast DOM update instead of React state update
+        updateHud();
         
         textsRef.current.push({
           text: comboRef.current > 1 ? `Combo x${comboRef.current}!` : `+${points}`,
@@ -109,6 +120,7 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
 
     const pointer = (event) => {
       if (!playingRef.current) return;
+      if (event.cancelable) event.preventDefault(); // Prevent scroll while slicing
       const rect = canvas.getBoundingClientRect();
       const point = event.touches ? event.touches[0] : event;
       const x = ((point.clientX - rect.left) / rect.width) * WIDTH;
@@ -117,11 +129,15 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
       sliceAt(x, y);
     };
 
-    const pointerMove = (e) => { if (e.buttons || e.pressure > 0) pointer(e); };
+    const pointerMove = (e) => { 
+      // Handle both touch drag and mouse drag
+      if (e.touches || e.buttons > 0 || e.pressure > 0) pointer(e); 
+    };
 
     canvas.addEventListener("pointerdown", pointer);
     canvas.addEventListener("pointermove", pointerMove);
-    canvas.addEventListener("touchmove", pointer, { passive: true });
+    canvas.addEventListener("touchstart", pointer, { passive: false });
+    canvas.addEventListener("touchmove", pointerMove, { passive: false });
 
     const loop = () => {
       ctx.save();
@@ -146,14 +162,12 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
       
       if (playingRef.current && spawn % spawnThreshold === 0) {
         const fruit = makeFruit(idRef.current++);
-        // Make them jump higher as it gets harder
         fruit.vy -= difficultyFactor * 0.4;
         itemsRef.current.push(fruit);
       }
 
-      // Update & draw fruits
       itemsRef.current.forEach((item) => {
-        if (item.sliced && item.kind === "fruit") return; // Sliced fruits are drawn as splinters
+        if (item.sliced && item.kind === "fruit") return; 
         
         item.vy += 0.24;
         item.x += item.vx;
@@ -167,25 +181,24 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.font = "44px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-
         ctx.fillText(item.kind === "bomb" ? "💣" : item.emoji, 0, 0);
         ctx.restore();
       });
 
-      // Remove off-screen fruits
       const remaining = [];
       itemsRef.current.forEach((item) => {
         if (item.y > HEIGHT + 60) {
           if (!item.sliced && item.kind === "fruit" && playingRef.current) {
             livesRef.current -= 1;
             comboRef.current = 0;
-            setHud({ score: scoreRef.current, lives: livesRef.current, combo: 0 });
             
-            // Flash screen red for missed fruit
+            // Fast DOM update
+            updateHud();
             flashRef.current = 0.3;
             
             if (livesRef.current <= 0) {
               playingRef.current = false;
+              setHud({ score: scoreRef.current, lives: livesRef.current, combo: 0 }); // final state
               setTimeout(() => onOutcome?.({ type: "over", score: scoreRef.current }), 500);
             }
           }
@@ -195,7 +208,6 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
       });
       itemsRef.current = remaining;
 
-      // Splinters (sliced fruit halves)
       splintersRef.current = splintersRef.current.filter((s) => s.y < HEIGHT + 60);
       splintersRef.current.forEach((s) => {
         s.vy += 0.28;
@@ -208,11 +220,8 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.rotate(s.rot);
         ctx.scale(s.scale, s.scale);
         ctx.beginPath();
-        if (s.isLeft) {
-          ctx.rect(-50, -50, 50, 100);
-        } else {
-          ctx.rect(0, -50, 50, 100);
-        }
+        if (s.isLeft) ctx.rect(-50, -50, 50, 100);
+        else ctx.rect(0, -50, 50, 100);
         ctx.clip();
         ctx.font = "44px sans-serif";
         ctx.textAlign = "center";
@@ -221,7 +230,6 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.restore();
       });
 
-      // Floating Texts
       textsRef.current = textsRef.current.filter((t) => t.life > 0);
       textsRef.current.forEach((t) => {
         t.y += t.vy;
@@ -235,7 +243,6 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.restore();
       });
 
-      // Particles
       particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
       particlesRef.current.forEach((p) => {
         p.x += p.vx;
@@ -245,13 +252,11 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        const radius = Math.max(0, p.size * p.life);
-        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, Math.max(0, p.size * p.life), 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       });
 
-      // Slice trail (Neon Blue)
       trailRef.current = trailRef.current.map((d) => ({ ...d, life: d.life - 1 })).filter((d) => d.life > 0);
       if (trailRef.current.length > 1) {
         ctx.save();
@@ -269,8 +274,7 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
         ctx.restore();
       }
 
-      ctx.restore(); // Restore global shake transform
-      
+      ctx.restore();
       frame = requestAnimationFrame(loop);
     };
 
@@ -279,16 +283,17 @@ export default function SliceStorm({ onOutcome, reviveSignal }) {
       cancelAnimationFrame(frame);
       canvas.removeEventListener("pointerdown", pointer);
       canvas.removeEventListener("pointermove", pointerMove);
-      canvas.removeEventListener("touchmove", pointer);
+      canvas.removeEventListener("touchstart", pointer);
+      canvas.removeEventListener("touchmove", pointerMove);
     };
   }, [onOutcome]);
 
   return (
     <div className={styles.wrap}>
       <div className={styles.hud}>
-        <span>⚡ {hud.score}</span>
-        <span>🔥 x{hud.combo}</span>
-        <span>{"♥".repeat(Math.max(hud.lives, 0)).padEnd(3, "♡")}</span>
+        <span id="ss-score">⚡ {hud.score}</span>
+        <span id="ss-combo">🔥 x{hud.combo}</span>
+        <span id="ss-lives">{"♥".repeat(Math.max(hud.lives, 0)).padEnd(3, "♡")}</span>
       </div>
       <canvas
         ref={canvasRef}

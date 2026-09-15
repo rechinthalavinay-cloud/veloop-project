@@ -21,10 +21,10 @@ export function GameShell({
     <div className={styles.shell}>
       {/* ── HUD bar ── */}
       <div className={styles.hud}>
-        <span className={styles.hudScore}>⚡ {score ?? 0}</span>
-        {hearts && <span className={styles.hudLives}>{hearts}</span>}
-        {level != null && <span className={styles.hudLevel}>Lv {level}</span>}
-        {time != null && <span className={styles.hudTime}>⏱ {time}s</span>}
+        <span className={styles.hudScore} id="game-score">⚡ {score ?? 0}</span>
+        {hearts && <span className={styles.hudLives} id="game-lives">{hearts}</span>}
+        {level != null && <span className={styles.hudLevel} id="game-level">Lv {level}</span>}
+        {time != null && <span className={styles.hudTime} id="game-time">⏱ {time}s</span>}
         {extraHud}
         <button
           className={styles.pauseBtn}
