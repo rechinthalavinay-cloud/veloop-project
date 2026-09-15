@@ -3,7 +3,7 @@ import Matter from "matter-js";
 import { GameShell } from "./GameShell";
 import "./NutCraft.css";
 
-const { Engine, World, Bodies, Constraint, Body } = Matter;
+const { Engine, World, Bodies, Constraint, Body, Vector } = Matter;
 
 const playSound = (type, ctxRef) => {
   if (!window.AudioContext && !window.webkitAudioContext) return;
@@ -78,26 +78,28 @@ function generateLevelData(levelIdx) {
   let targetTime = 60;
 
   if (levelIdx === 0) {
-    // Level 1 Hardcore: 3 planks, interlaced
+    // Level 1: 4 planks
     holes = [ 
-      { id: 'h1', x: 100, y: 150 }, { id: 'h2', x: 240, y: 150 }, 
-      { id: 'h3', x: 100, y: 250 }, { id: 'h4', x: 240, y: 250 },
-      { id: 'h5', x: 170, y: 100 }, { id: 'h6', x: 170, y: 300 },
-      { id: 'e1', x: 80, y: 80 }, { id: 'e2', x: 260, y: 80 }
+      { id: 'h1', x: 80, y: 150 }, { id: 'h2', x: 220, y: 150 }, 
+      { id: 'h3', x: 120, y: 230 }, { id: 'h4', x: 260, y: 230 },
+      { id: 'h5', x: 160, y: 100 }, { id: 'h6', x: 160, y: 280 },
+      { id: 'h7', x: 200, y: 80 }, { id: 'h8', x: 200, y: 200 },
+      { id: 'e1', x: 100, y: 80 }, { id: 'e2', x: 260, y: 90 }
     ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 }, 
-      { id: 'p3', h1: 'h5', h2: 'h6', z: 20 },
-      { id: 'p2', h1: 'h3', h2: 'h4', z: 30 } 
+      { id: 'p2', h1: 'h3', h2: 'h4', z: 20 },
+      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 },
+      { id: 'p4', h1: 'h7', h2: 'h8', z: 40 }
     ];
     screws = [ 
       { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
       { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' } 
+      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
+      { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' }
     ];
     targetTime = 50;
   } else if (levelIdx === 1) {
-    // Level 2 Hardcore: 4 planks
     holes = [ 
       { id: 'h1', x: 100, y: 120 }, { id: 'h2', x: 240, y: 120 },
       { id: 'h3', x: 170, y: 180 }, { id: 'h4', x: 170, y: 320 },
@@ -119,7 +121,6 @@ function generateLevelData(levelIdx) {
     ];
     targetTime = 60;
   } else if (levelIdx === 2) {
-    // Level 3 Hardcore: 5 planks
     holes = [ 
       { id: 'h1', x: 80, y: 80 }, { id: 'h2', x: 260, y: 260 }, 
       { id: 'h3', x: 260, y: 80 }, { id: 'h4', x: 80, y: 260 }, 
@@ -144,7 +145,6 @@ function generateLevelData(levelIdx) {
     ];
     targetTime = 90;
   } else if (levelIdx === 3) {
-    // Level 4 Hardcore: 6 planks
     holes = [
       {id:'v1a',x:110,y:80}, {id:'v1b',x:110,y:300}, 
       {id:'v2a',x:230,y:80}, {id:'v2b',x:230,y:300}, 
@@ -172,7 +172,6 @@ function generateLevelData(levelIdx) {
     ];
     targetTime = 120;
   } else if (levelIdx >= 4) { 
-    // Level 5 Expert: 8 planks!
     holes = [
       {id:'a1',x:60,y:100}, {id:'a2',x:280,y:100},
       {id:'b1',x:60,y:200}, {id:'b2',x:280,y:200},
@@ -182,7 +181,7 @@ function generateLevelData(levelIdx) {
       {id:'f1',x:170,y:60}, {id:'f2',x:170,y:340},
       {id:'g1',x:90,y:150}, {id:'g2',x:250,y:150},
       {id:'h1',x:90,y:250}, {id:'h2',x:250,y:250},
-      {id:'x1',x:170,y:200}, {id:'x2',x:170,y:150}, {id:'x3',x:170,y:250} // only 3 empty
+      {id:'x1',x:170,y:200}, {id:'x2',x:170,y:150}, {id:'x3',x:170,y:250}
     ];
     planks = [
       {id:'p1', h1:'a1', h2:'a2', z:10},
@@ -265,10 +264,10 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
         const body = Bodies.rectangle(cx, cy, length + 36, 30, {
             angle: angle,
-            frictionAir: 0.05,
-            friction: 0.5,
+            frictionAir: 0.005, // FIXED: lower air friction so they don't freeze in mid air
+            friction: 0.8,
             restitution: 0.1,
-            density: 0.001, // extremely light to prevent constraint stretch
+            density: 0.05, // FIXED: Higher density to allow them to fall properly
             collisionFilter: {
                 category: cat,
                 mask: cat 
@@ -292,15 +291,13 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       currentScrews.forEach(screw => {
           const hole = data.holes.find(h => h.id === screw.holeId);
           data.planks.forEach(plank => {
-              // we don't depend on fallenPlanks react state here to avoid re-running when a plank falls.
-              // instead we just check if the body exists in the physics world
               const body = plankBodiesRef.current[plank.id];
               if (!body) return;
               
-              const h1 = data.holes.find(h => h.id === plank.h1);
-              const h2 = data.holes.find(h => h.id === plank.h2);
-              
               if (plank.h1 === hole.id || plank.h2 === hole.id) {
+                  const h1 = data.holes.find(h => h.id === plank.h1);
+                  const h2 = data.holes.find(h => h.id === plank.h2);
+                  
                   const cx = (h1.x + h2.x) / 2;
                   const cy = (h1.y + h2.y) / 2;
                   const angle = Math.atan2(h2.y - h1.y, h2.x - h1.x);
@@ -311,19 +308,26 @@ export function NutCraft({ onOutcome, reviveSignal }) {
                   const localX = vx * Math.cos(-angle) - vy * Math.sin(-angle);
                   const localY = vx * Math.sin(-angle) + vy * Math.cos(-angle);
 
-                  const constraint = Constraint.create({
-                      bodyA: body,
-                      pointA: { x: localX, y: localY },
-                      pointB: { x: hole.x, y: hole.y },
-                      stiffness: 1, // With light mass, 1 is perfectly rigid
-                      length: 0
-                  });
-                  World.add(engine.world, constraint);
-                  constraintsRef.current[`${plank.id}-${screw.id}`] = constraint;
+                  // FIXED: Teleport bug. Check if plank is physically at the hole before attaching.
+                  const worldPointA = Vector.add(body.position, Vector.rotate({ x: localX, y: localY }, body.angle));
+                  const dist = Math.hypot(worldPointA.x - hole.x, worldPointA.y - hole.y);
+                  
+                  // Only attach if it's within 30px of the hole physically!
+                  if (dist < 30) {
+                      const constraint = Constraint.create({
+                          bodyA: body,
+                          pointA: { x: localX, y: localY },
+                          pointB: { x: hole.x, y: hole.y },
+                          stiffness: 1, 
+                          length: 0
+                      });
+                      World.add(engine.world, constraint);
+                      constraintsRef.current[`${plank.id}-${screw.id}`] = constraint;
+                  }
               }
           });
       });
-  }, []); // no fallenPlanks dependency!
+  }, []);
 
   const handlePlankFall = useCallback((plankId) => {
     setFallenPlanks(prev => {
@@ -334,7 +338,6 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     });
   }, []);
 
-  // High Performance Physics Loop (No React setState)
   useEffect(() => {
       let lastTime = performance.now();
 
@@ -368,7 +371,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
       rafRef.current = requestAnimationFrame(loop);
       return () => cancelAnimationFrame(rafRef.current);
-  }, [phase, handlePlankFall]); // removed fallenPlanks
+  }, [phase, handlePlankFall]); 
 
   useEffect(() => {
     initPhysics(levelData, levelData.screws);
@@ -444,7 +447,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
           if (plankId) {
              const plank = levelData.planks.find(p => p.id === plankId);
              
-             if (plank.h1 === hole.id || plank.h2 === hole.id) {
+             // FIXED: if a plank is supposed to be here, but has swung away, Query.point won't hit it anyway
+             if (plank && (plank.h1 === hole.id || plank.h2 === hole.id)) {
                  continue; 
              } else {
                  return true; 
