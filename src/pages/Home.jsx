@@ -1,15 +1,16 @@
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-import GamesCarousel from "../components/games/GamesCarousel";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useWallet } from "../context/WalletContext";
-import { tokenIcon, coinIcon, vesIcon, gemIcon, spinIcon } from "../assets/icons";
+import { coinIcon, tokensIcon } from "../assets/icons";
+import { games } from "../data/gamesData";
 import { motion } from "framer-motion";
-import { ArrowRight, Gift, ShoppingCart, Landmark } from "lucide-react";
+import { ArrowRight, Gift, Gamepad2, Coins } from "lucide-react";
 import styles from "./Home.module.css";
 
 export default function Home() {
   const { wallet } = useWallet();
+  const navigate = useNavigate();
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -20,185 +21,157 @@ export default function Home() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { staggerChildren: 0.05 }
     }
   };
 
   return (
-    <div className="app-shell">
+    <div className={styles.mainWrapper}>
       <Navbar />
-      <main className={styles.mainWrapper}>
-        
-        {/* Subtle Gaming Background Effects */}
-        <div className={styles.ambientBackground}>
-          <div className={styles.glowTop}></div>
-          <div className={styles.glowBottom}></div>
-        </div>
+      
+      {/* Subtle Gaming Background Effects */}
+      <div className={styles.ambientBackground}>
+        <div className={styles.glowTop}></div>
+        <div className={styles.glowBottom}></div>
+      </div>
 
+      <main>
         {/* HERO SECTION */}
         <section className={styles.heroSection}>
-          <div className="page-wrap">
-            <motion.div 
-              className={styles.heroContent}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-            >
-              <h1 className={styles.heroTitle}>
-                Elevate Your <br />
-                <span className="text-gradient-purple">Gaming Experience.</span>
-              </h1>
-              <p className={styles.heroSubtitle}>
-                Play premium titles, earn Game Coins, and effortlessly redeem them for real-world value on the ultimate rewards platform.
-              </p>
-              
-              <div className={styles.heroActions}>
-                <Link to="/#games" className={styles.primaryBtn}>
-                  Explore Games <ArrowRight size={18} />
-                </Link>
-                <Link to="/rewards" className={styles.secondaryBtn}>
-                  View Rewards
-                </Link>
-              </div>
-            </motion.div>
-          </div>
+          <motion.div 
+            className={styles.heroContent}
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+          >
+            <span className={styles.heroPreTitle}>PLAY • EARN • REDEEM</span>
+            <h1 className={styles.heroTitle}>
+              Games
+            </h1>
+            <p className={styles.heroSubtitle}>
+              Explore exciting games, complete challenges, and earn amazing rewards.
+            </p>
+          </motion.div>
         </section>
 
-        {/* WALLET / ASSETS DASHBOARD */}
-        <section className={styles.dashboardSection}>
-          <div className="page-wrap">
-            <motion.div 
-              className={styles.dashboardGrid}
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-            >
-              {/* Primary Assets */}
-              <motion.div className={`${styles.assetCard} ${styles.primaryWalletCard}`} variants={fadeUp}>
-                <div className={styles.assetHeader}>
-                  <h3>Primary Balances</h3>
-                  <div className={styles.assetIndicator}></div>
-                </div>
-                
-                <div className={styles.primaryStats}>
-                  <div className={styles.statGroup}>
-                    <div className={styles.statIconWrap} style={{background: 'rgba(245, 197, 66, 0.1)'}}>
-                      <img src={tokenIcon} alt="Tokens" />
-                    </div>
-                    <div className={styles.statData}>
-                      <span className={styles.statLabel}>Tokens</span>
-                      <strong className={styles.statValue}>{wallet.tokens}</strong>
-                      <span className={styles.statSub}>Entry currency</span>
-                    </div>
-                  </div>
-                  
-                  <div className={styles.statDivider}></div>
-                  
-                  <div className={styles.statGroup}>
-                    <div className={styles.statIconWrap} style={{background: 'rgba(139, 92, 246, 0.1)'}}>
-                      <img src={coinIcon} alt="Game Coins" />
-                    </div>
-                    <div className={styles.statData}>
-                      <span className={styles.statLabel}>Game Coins</span>
-                      <strong className={styles.statValue}>{wallet.gameCoins}</strong>
-                      <span className={styles.statSub}>Exchangeable value</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Secondary Assets */}
-              <motion.div className={`${styles.assetCard} ${styles.secondaryWalletCard}`} variants={fadeUp}>
-                <div className={styles.assetHeader}>
-                  <h3>Secondary Assets</h3>
-                </div>
-                
-                <div className={styles.secondaryStats}>
-                  {[
-                    { id: "ve", name: "VEs", value: wallet.ves, icon: vesIcon, sub: "Cash out balance" },
-                    { id: "gems", name: "Gems", value: wallet.gems, icon: gemIcon, sub: "Premium items" },
-                    { id: "spins", name: "Spins", value: wallet.spins, icon: spinIcon, sub: "Bonus wheels" }
-                  ].map((item) => (
-                    <div key={item.id} className={styles.miniStat}>
-                      <div className={styles.miniStatTop}>
-                        <img src={item.icon} alt={item.name} className={styles.miniIcon} />
-                        <span className={styles.miniLabel}>{item.name}</span>
-                      </div>
-                      <strong className={styles.miniValue}>{item.value}</strong>
-                      <span className={styles.miniSub}>{item.sub}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </motion.div>
+        {/* WALLET HEADER STREAMLINED */}
+        <div className={styles.walletHeader}>
+          <div className={styles.walletPill}>
+            <img src={coinIcon} alt="Game Coins" />
+            <div className={styles.walletInfo}>
+              <span className={styles.walletVal}>{wallet.gameCoins}</span>
+              <span className={styles.walletLabel}>Game Coins</span>
+            </div>
           </div>
-        </section>
+          <div className={styles.walletPill}>
+            <img src={tokensIcon} alt="Tokens" />
+            <div className={styles.walletInfo}>
+              <span className={styles.walletVal}>{wallet.tokens}</span>
+              <span className={styles.walletLabel}>Tokens</span>
+            </div>
+          </div>
+        </div>
 
-        {/* GAMES SHOWCASE */}
+        {/* GAMES GRID SHOWCASE */}
         <section id="games" className={styles.gamesSection}>
-          <div className="page-wrap">
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Featured Games</h2>
-              <p className={styles.sectionDesc}>Play premium titles, earn Game Coins, and climb the leaderboard.</p>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitleBox}>
+              <div className={styles.sectionIcon}>
+                <Gamepad2 size={24} />
+              </div>
+              <div>
+                <h2>Games for You</h2>
+                <p>13 amazing games. Play, earn and redeem!</p>
+              </div>
+            </div>
+            <div className={styles.gamesCount}>
+              13 GAMES
+            </div>
+          </div>
+          
+          <motion.div 
+            className={styles.gamesGrid}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            {games.map((game, index) => {
+              const isPlayable = game.playable;
+              
+              return (
+                <motion.div key={game.id} variants={fadeUp}>
+                  <Link 
+                    to={isPlayable ? `/games/${game.slug}` : "#"} 
+                    className={styles.gameCard}
+                    onClick={(e) => { if (!isPlayable) e.preventDefault(); }}
+                  >
+                    <div className={styles.cardImageWrap}>
+                      <img src={game.image} alt={game.name} className={styles.cardImage} />
+                      <div className={`${styles.badgeTop} ${isPlayable ? styles.badgePlayable : styles.badgeComingSoon}`}>
+                        {isPlayable ? 'Playable' : 'Coming Soon'}
+                      </div>
+                    </div>
+                    
+                    <div className={styles.cardContent}>
+                      <span className={styles.cardCategory}>{game.category} GAME</span>
+                      <h3 className={styles.cardTitle}>{game.name}</h3>
+                      
+                      <div className={styles.cardFooter}>
+                        <div className={styles.tokenCost}>
+                          <img src={tokensIcon} alt="Tokens" />
+                          <span>{game.cost} Tokens</span>
+                        </div>
+                        
+                        <div className={`${styles.playBtn} ${!isPlayable ? styles.comingSoonBtn : ''}`}>
+                          {isPlayable ? (
+                            <>Play Now <ArrowRight size={16} /></>
+                          ) : (
+                            'Coming Soon 🕒'
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </section>
+
+        {/* INFO FOOTER BARS */}
+        <div className={styles.infoFooter}>
+          <div className={styles.infoGrid}>
+            <div className={styles.infoCol}>
+              <div className={styles.infoIcon}><Gamepad2 size={24} /></div>
+              <div className={styles.infoText}>
+                <h4>Exciting Games</h4>
+                <p>for Every Skill</p>
+              </div>
             </div>
             
-            <div className={styles.carouselWrap}>
-              <GamesCarousel />
+            <div className={styles.infoCol}>
+              <div className={styles.infoIcon}><Coins size={24} /></div>
+              <div className={styles.infoText}>
+                <h4>Earn Game Coins</h4>
+                <p>as You Play</p>
+              </div>
+            </div>
+            
+            <div className={styles.infoCol} style={{justifyContent: 'space-between', width: '100%'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+                <div className={styles.infoIcon}><Gift size={24} /></div>
+                <div className={styles.infoText}>
+                  <h4>Redeem Real</h4>
+                  <p>Rewards</p>
+                </div>
+              </div>
+              <div className={styles.playMoreText}>
+                Play More <span>Earn More!</span>
+              </div>
             </div>
           </div>
-        </section>
-
-        {/* QUICK ACTIONS BENTO */}
-        <section className={styles.actionsSection}>
-          <div className="page-wrap">
-            <div className={styles.bentoGrid}>
-              
-              <Link to="/rewards" className={`${styles.bentoCard} ${styles.bentoRewards}`}>
-                <div className={styles.bentoIconBox}>
-                  <Gift size={24} />
-                </div>
-                <div className={styles.bentoContent}>
-                  <h3>Reward Sessions</h3>
-                  <p>Claim your daily boosts.</p>
-                </div>
-                <div className={styles.bentoAction}>
-                  Open Rewards <ArrowRight size={16} />
-                </div>
-                <div className={styles.bentoGlow}></div>
-              </Link>
-              
-              <Link to="/redeem" className={`${styles.bentoCard} ${styles.bentoRedeem}`}>
-                <div className={styles.bentoIconBox}>
-                  <ShoppingCart size={24} />
-                </div>
-                <div className={styles.bentoContent}>
-                  <h3>Redeem Center</h3>
-                  <p>Exchange Game Coins instantly.</p>
-                </div>
-                <div className={styles.bentoAction}>
-                  Browse Rewards <ArrowRight size={16} />
-                </div>
-                <div className={styles.bentoGlow}></div>
-              </Link>
-              
-              <Link to="/withdraw" className={`${styles.bentoCard} ${styles.bentoWithdraw}`}>
-                <div className={styles.bentoIconBox}>
-                  <Landmark size={24} />
-                </div>
-                <div className={styles.bentoContent}>
-                  <h3>Withdraw VEs</h3>
-                  <p>Cash out to bank or UPI.</p>
-                </div>
-                <div className={styles.bentoAction}>
-                  Withdraw <ArrowRight size={16} />
-                </div>
-                <div className={styles.bentoGlow}></div>
-              </Link>
-              
-            </div>
-          </div>
-        </section>
+        </div>
 
       </main>
       <Footer />
