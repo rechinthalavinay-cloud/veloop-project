@@ -64,8 +64,8 @@
 }
 .floatCard {
   position: absolute;
-  width: 200px;
-  height: 280px;
+  width: 240px;
+  aspect-ratio: 16 / 9;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(0,0,0,0.6);
