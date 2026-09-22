@@ -349,11 +349,16 @@
   .heroTitle { font-size: 3.5rem; }
   .gamesGrid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
   .infoGrid { grid-template-columns: 1fr; gap: 30px; }
-  .playMoreText { text-align: left; }
+  .playMoreText { text-align: left; font-size: 1.1rem; }
 }
 @media (max-width: 768px) {
-  .heroTitle { font-size: 2.5rem; }
-  .walletHeader { flex-direction: column; align-items: stretch; }
-  .walletPill { justify-content: center; }
+  .heroSection { padding: 60px 16px 40px; }
+  .heroTitle { font-size: 3rem; }
+  .walletHeader { flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: -20px; }
+  .walletPill { padding: 8px 16px; }
+  .walletVal { font-size: 1rem; }
   .sectionHeader { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .gamesGrid { grid-template-columns: 1fr; }
+  .infoCol { flex-direction: column; align-items: flex-start; text-align: left; }
+  .infoCol[style] { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
 }
