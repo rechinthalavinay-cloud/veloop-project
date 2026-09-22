@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutCraft Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #121214;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .header-panel {
+            width: 450px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .stat-box {
+            background: #232329;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 1px solid #34343d;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .stat-box.energy { border-color: #ff9800; color: #ff9800; }
+        .stat-box.timer { border-color: #e91e63; color: #e91e63; }
+        #gameCanvas {
+            background: #d7a15c;
+            border: 12px solid #8d5b27;
+            border-radius: 24px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .instructions {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #8a8a93;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-panel">
+        <div class="stat-box energy">⚡ 20</div>
+        <div class="stat-box">Lv 1</div>
+        <div class="stat-box timer" id="clock">⏳ 45s</div>
+    </div>
+
+    <canvas id="gameCanvas" width="450" height="500"></canvas>
+
+    <div class="instructions">
+        <strong>How to Play:</strong> Click a screw (<span style="color:#d32f2f; font-weight:bold;">✖</span>) to unscrew it, then click an empty hole to deposit it. Free the bars to drop them from the board!
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const clockDisplay = document.getElementById('clock');
+
+        let timeLeft = 45;
+        let selectedScrewIndex = null;
+
+        // 1. Setup Board Holes (X, Y coordinate maps matching the layout)
+        const holes = [
+            { id: 0, x: 90,  y: 100, hasScrew: true },
+            { id: 1, x: 360, y: 100, hasScrew: true },
+            { id: 2, x: 135, y: 140, hasScrew: true },
+            { id: 3, x: 315, y: 140, hasScrew: true },
+            { id: 4, x: 225, y: 180, hasScrew: true },
+            { id: 5, x: 225, y: 350, hasScrew: true },
+            { id: 6, x: 80,  y: 420, hasScrew: false },
+            { id: 7, x: 370, y: 420, hasScrew: false }
+        ];
+
+        // 2. Define Structural Bars with specific connected holes and layering arrays
+        const bars = [
+            {
+                id: 'grey-bar',
+                color: '#90a4ae',
+                stripes: '#b0bec5',
+                holeIndices: [2, 3], // Anchored at holes 2 and 3 initially
+                width: 190,
+                height: 34,
+                x: 130,
+                y: 123,
+                isFalling: false,
+                fallY: 0,
+                velocity: 0
+            },
+            {
+                id: 'orange-bar',
+                color: '#ff7043',
+                stripes: '#ff8a65',
+                holeIndices: [], // Starts with NO screws embedded (the logic error state fixed to be loose!)
+                width: 160,
+                height: 34,
+                x: 145,
+                y: 250,
+                isFalling: true, // Triggers fall physics immediately since it has 0 anchors
+                fallY: 0,
+                velocity: 2
+            }
+        ];
+
+        // Global Loop Timer
+        setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                clockDisplay.innerText = `⏳ ${timeLeft}s`;
+            }
+        }, 1000);
+
+        // Canvas Interaction Engine
+        canvas.addEventListener('click', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Check if player clicked a hole
+            holes.forEach((hole, idx) => {
+                const dist = Math.hypot(hole.x - clickX, hole.y - clickY);
+                if (dist < 18) {
+                    if (hole.hasScrew) {
+                        // Select Screw
+                        selectedScrewIndex = idx;
+                    } else if (selectedScrewIndex !== null) {
+                        // Move Screw to empty hole
+                        holes[selectedScrewIndex].hasScrew = false;
+                        
+                        // Dynamically update bar dependencies
+                        bars.forEach(bar => {
+                            bar.holeIndices = bar.holeIndices.filter(hIdx => hIdx !== selectedScrewIndex);
+                        });
+
+                        hole.hasScrew = true;
+                        
+                        // Add context anchor back if placed into a hole holding a static bar frame
+                        bars.forEach(bar => {
+                            if (!bar.isFalling && isHoleInsideBar(hole, bar)) {
+                                bar.holeIndices.push(idx);
+                            }
+                        });
+
+                        selectedScrewIndex = null;
+                    }
+                }
+            });
+        });
+
+        function isHoleInsideBar(hole, bar) {
+            return (hole.x >= bar.x && hole.x <= bar.x + bar.width &&
+                    hole.y >= bar.y && hole.y <= bar.y + bar.height);
+        }
+
+        // Live Render Routine
+        function updateAndDraw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // A. Draw Board Wood Grain Elements
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            for (let i = 0; i < canvas.height; i += 25) {
+                ctx.fillRect(0, i, canvas.width, 2);
+            }
+
+            // B. Draw Board Base Holes
+            holes.forEach(hole => {
+                ctx.beginPath();
+                ctx.arc(hole.x, hole.y, 16, 0, Math.PI * 2);
+                ctx.fillStyle = '#4a321a';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#2d1e10';
+                ctx.stroke();
+            });
+
+            // C. Physics Validation Loop & Draw Structural Plates
+            bars.forEach(bar => {
+                // Check if anchors dropped to zero
+                if (bar.holeIndices.length === 0) {
+                    bar.isFalling = true;
+                }
+
+                if (bar.isFalling) {
+                    bar.velocity += 0.4; // Simulated Gravity Force Acceleration
+                    bar.fallY += bar.velocity;
+                }
+
+                ctx.save();
+                ctx.translate(0, bar.fallY);
+
+                // Draw Bar Shadow Layer
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                ctx.fillRect(bar.x + 4, bar.y + 6, bar.width, bar.height);
+
+                // Draw Solid Color Plates
+                ctx.fillStyle = bar.color;
+                ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
+
+                // Render Diagonal Texture Elements
+                ctx.fillStyle = bar.stripes;
+                for (let offset = 0; offset < bar.width; offset += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(bar.x + offset, bar.y);
+                    ctx.lineTo(bar.x + offset + 10, bar.y);
+                    ctx.lineTo(bar.x + offset, bar.y + bar.height);
+                    ctx.lineTo(bar.x + offset - 10, bar.y + bar.height);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Render inner cut holes on bars
+                if (bar.id === 'grey-bar') {
+                    drawInnerHole(holes[2].x, holes[2].y);
+                    drawInnerHole(holes[3].x, holes[3].y);
+                } else if (bar.id === 'orange-bar') {
+                    drawInnerHole(180, 267);
+                    drawInnerHole(270, 267);
+                }
+
+                ctx.restore();
+            });
+
+            // D. Layer Screws securely on TOP plane index profile
+            holes.forEach((hole, idx) => {
+                if (hole.hasScrew) {
+                    // Draw Screw Cap
+                    ctx.beginPath();
+                    ctx.arc(hole.x, hole.y, 15, 0, Math.PI * 2);
+                    ctx.fillStyle = selectedScrewIndex === idx ? '#e57373' : '#d32f2f';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#b71c1c';
+                    ctx.stroke();
+
+                    // Draw Screw Inner Core "X" Locking Indentations
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(hole.x - 5, hole.y - 5);
+                    ctx.lineTo(hole.x + 5, hole.y + 5);
+                    ctx.moveTo(hole.x + 5, hole.y - 5);
+                    ctx.lineTo(hole.x - 5, hole.y + 5);
+                    ctx.stroke();
+                }
+            });
+
+            requestAnimationFrame(updateAndDraw);
+        }
+
+        function drawInnerHole(x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fill();
+            ctx.lineWidth = 2;
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+        }
+        // Initialize Engine
+        requestAnimationFrame(updateAndDraw);
+    </script>
+</body>
+</html>

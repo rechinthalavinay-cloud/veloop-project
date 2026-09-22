@@ -8,8 +8,8 @@ export class PhysicsWorld {
     this.world = this.engine.world;
     this.runner = Matter.Runner.create();
     
-    // Add default gravity
-    this.engine.world.gravity.y = 1;
+    // Add heavier gravity for realism
+    this.engine.world.gravity.y = 2;
     this.engine.world.gravity.x = 0;
 
     this.plankBodies = {};
@@ -95,7 +95,7 @@ export class PhysicsWorld {
       positions[id] = {
         x: body.position.x,
         y: body.position.y,
-        angle: body.angle
+        angle: (body.plugin && body.plugin.initialAngle ? body.plugin.initialAngle : 0) + body.angle
       };
     });
     return positions;

@@ -69,22 +69,36 @@ export function GameBoard({ onOutcome, reviveSignal }) {
     
     const result = managerRef.current.handleBoltClick(boltId, isBlocked);
     
-    if (result.success) {
+    if (result.success && result.action === 'selected') {
+      // Just visually selected, no physics change yet
+    } else if (result.reason === 'blocked') {
+      // Shake animation can be triggered here via state or DOM ref
+    }
+  };
+
+  const handleHoleClick = (holeId) => {
+    if (!managerRef.current || !physicsRef.current || !logicRef.current) return;
+
+    const currentLevel = levels[gameState.levelIdx];
+    const isBlocked = logicRef.current.isHoleBlocked(holeId, currentLevel);
+
+    const result = managerRef.current.handleHoleClick(holeId, isBlocked);
+
+    if (result.success && result.action === 'moved') {
+      const boltId = result.boltId;
       physicsRef.current.removeBolt(boltId);
       
-      // Spawn particles
-      const bolt = currentLevel.bolts.find(b => b.id === boltId);
+      // Spawn particles at new hole location
+      const hole = currentLevel.holes.find(h => h.id === holeId);
       const newParts = Array.from({ length: 8 }).map((_, i) => ({
         id: Date.now() + i,
-        x: bolt.x,
-        y: bolt.y,
-        tx: bolt.x + (Math.random() - 0.5) * 80,
-        ty: bolt.y + (Math.random() - 0.5) * 80
+        x: hole.x,
+        y: hole.y,
+        tx: hole.x + (Math.random() - 0.5) * 80,
+        ty: hole.y + (Math.random() - 0.5) * 80
       }));
       setParticles(p => [...p, ...newParts]);
       setTimeout(() => setParticles(p => p.filter(part => !newParts.find(n => n.id === part.id))), 500);
-    } else if (result.reason === 'blocked') {
-      // Shake animation can be triggered here via state or DOM ref
     }
   };
 
@@ -129,6 +143,16 @@ export function GameBoard({ onOutcome, reviveSignal }) {
     >
       <div className="nutcraft-board" id="nc-board" style={{ transform: `scale(${boardScale})`, transformOrigin: 'top center' }}>
         
+        {/* Render Grid Holes */}
+        {currentLevel.holes && currentLevel.holes.map(hole => (
+          <div 
+            key={`hole-${hole.id}`}
+            className="hole hole-interactive"
+            style={{ left: hole.x, top: hole.y }}
+            onClick={() => handleHoleClick(hole.id)}
+          />
+        ))}
+
         {/* Render Planks */}
         {currentLevel.planks.map(plankData => {
           const pos = plankPositions[plankData.id];
@@ -152,7 +176,7 @@ export function GameBoard({ onOutcome, reviveSignal }) {
                 willChange: 'transform, left, top'
               }}
             >
-              <div className="plank" style={{ width: '100%', height: '100%', borderRadius: 18, position: 'relative' }}>
+              <div className={`plank plank-${plankData.material || 'steel'}`} style={{ width: '100%', height: '100%', borderRadius: 18, position: 'relative' }}>
                 <div className="plank-texture" />
                 <div className="metal-bracket" style={{ position: 'absolute', left: 0, top: 0 }} />
                 <div className="metal-bracket" style={{ position: 'absolute', right: 0, top: 0 }} />
@@ -161,20 +185,64 @@ export function GameBoard({ onOutcome, reviveSignal }) {
           );
         })}
 
+        {/* Modals */}
+        {gameState.phase === 'game_over' && (
+          <div className="nc-modal">
+            <h1 style={{color: '#ff4757'}}>GAME OVER</h1>
+            <div className="nc-modal-stats">Score: {gameState.score}</div>
+            <button className="nc-modal-btn primary" onClick={handleRestart}>RETRY</button>
+          </div>
+        )}
+
+        {gameState.phase === 'level_complete' && (
+          <div className="nc-modal">
+            <div className="victory-checkmark">
+              <svg viewBox="0 0 52 52" style={{width: '60px', height: '60px'}}>
+                <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="#00e5ff" strokeWidth="2" />
+                <path className="checkmark-check" fill="none" stroke="#00e5ff" strokeWidth="4" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+            <h1>LEVEL COMPLETE</h1>
+            <div className="nc-stars">⭐⭐⭐</div>
+            <div className="nc-modal-stats">Score: {gameState.score}<br/>Time Left: {gameState.timeLeft}s</div>
+            <button className="nc-modal-btn primary" onClick={handleNextLevel}>NEXT LEVEL</button>
+          </div>
+        )}
+
         {/* Render Bolts */}
         {currentLevel.bolts.map(bolt => {
           const isActive = gameState.activeBolts.includes(bolt.id);
+          const isSelected = gameState.selectedBoltId === bolt.id;
+          
           if (!isActive) return null;
 
           return (
             <div 
               key={`bolt-${bolt.id}`}
-              className="screw-interactive"
+              className={`screw-interactive ${isSelected ? 'selected' : ''}`}
               style={{ left: bolt.x, top: bolt.y, zIndex: 100 }}
               onClick={() => handleBoltClick(bolt.id)}
             >
-              <div className="screw-visual" style={{ background: 'radial-gradient(circle at 30% 30%, #e0e5ec, #788591 60%, #4a5568)' }}>
-                <div className="screw-cross" style={{ color: '#111', fontSize: '18px', fontWeight: 'bold' }}>X</div>
+              <div className="screw-visual">
+                <div className="screw-cross">X</div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Render Moved Bolts in Holes */}
+        {currentLevel.holes && currentLevel.holes.map(hole => {
+          const occupantBoltId = gameState.movedBolts[hole.id];
+          if (!occupantBoltId) return null;
+
+          return (
+            <div 
+              key={`moved-bolt-${hole.id}`}
+              className="screw-interactive"
+              style={{ left: hole.x, top: hole.y, zIndex: 90, pointerEvents: 'none' }}
+            >
+              <div className="screw-visual" style={{ margin: 0 }}>
+                <div className="screw-cross">X</div>
               </div>
             </div>
           );
@@ -184,6 +252,7 @@ export function GameBoard({ onOutcome, reviveSignal }) {
         {particles.map(p => (
           <div key={p.id} className="particle" style={{ left: p.x, top: p.y, '--tx': `${p.tx - p.x}px`, '--ty': `${p.ty - p.y}px` }} />
         ))}
+
       </div>
     </GameShell>
   );

@@ -34,4 +34,17 @@ export class PuzzleLogic {
 
     return false;
   }
+
+  isHoleBlocked(holeId, levelData) {
+    const hole = levelData.holes?.find(h => h.id === holeId);
+    if (!hole) return false;
+
+    const bodies = Object.values(this.physicsWorld.plankBodies);
+    
+    // Find bodies that overlap the hole's center
+    const overlapping = Matter.Query.point(bodies, { x: hole.x, y: hole.y });
+    
+    // If any body overlaps the hole, it is blocked
+    return overlapping.length > 0;
+  }
 }
