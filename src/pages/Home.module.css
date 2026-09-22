@@ -35,8 +35,8 @@
   z-index: 1;
   padding: 100px 20px 60px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(11, 12, 16, 0.7) 0%, #0b0c10 100%),
-              url('../games/6.jpeg') center/cover no-repeat;
+  background: linear-gradient(180deg, rgba(11, 12, 16, 0.75) 0%, #0b0c10 100%),
+              url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .heroContent {
