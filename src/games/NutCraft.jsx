@@ -171,7 +171,7 @@ function generateLevelData(levelIdx) {
       { id: 's11', holeId: 'd2a' }, { id: 's12', holeId: 'd2b' }
     ];
     targetTime = 120;
-  } else if (levelIdx >= 4) { 
+  } else if (levelIdx === 4) { 
     holes = [
       {id:'a1',x:60,y:100}, {id:'a2',x:280,y:100},
       {id:'b1',x:60,y:200}, {id:'b2',x:280,y:200},
@@ -204,6 +204,122 @@ function generateLevelData(levelIdx) {
       { id: 's15', holeId: 'h1' }, { id: 's16', holeId: 'h2' }
     ];
     targetTime = 180;
+  } else if (levelIdx === 5) {
+    // Level 6: Zig Zag Pattern
+    holes = [
+      {id:'h1',x:50,y:50}, {id:'h2',x:150,y:150},
+      {id:'h3',x:250,y:50}, {id:'h4',x:350,y:150},
+      {id:'h5',x:50,y:250}, {id:'h6',x:150,y:350},
+      {id:'h7',x:250,y:250}, {id:'h8',x:350,y:350},
+      {id:'e1',x:100,y:100}, {id:'e2',x:300,y:100},
+      {id:'e3',x:100,y:300}, {id:'e4',x:300,y:300}
+    ];
+    planks = [
+      {id:'p1', h1:'h1', h2:'h2', z:10},
+      {id:'p2', h1:'h2', h2:'h3', z:20},
+      {id:'p3', h1:'h3', h2:'h4', z:30},
+      {id:'p4', h1:'h5', h2:'h6', z:40},
+      {id:'p5', h1:'h6', h2:'h7', z:50},
+      {id:'p6', h1:'h7', h2:'h8', z:60}
+    ];
+    screws = [
+      {id:'s1', holeId:'h1'}, {id:'s2', holeId:'h2'}, {id:'s3', holeId:'h3'}, {id:'s4', holeId:'h4'},
+      {id:'s5', holeId:'h5'}, {id:'s6', holeId:'h6'}, {id:'s7', holeId:'h7'}, {id:'s8', holeId:'h8'}
+    ];
+    targetTime = 150;
+  } else if (levelIdx === 6) {
+    // Level 7: Starburst
+    holes = [
+      {id:'c',x:200,y:200},
+      {id:'t',x:200,y:40}, {id:'b',x:200,y:360},
+      {id:'l',x:40,y:200}, {id:'r',x:360,y:200},
+      {id:'tl',x:80,y:80}, {id:'br',x:320,y:320},
+      {id:'tr',x:320,y:80}, {id:'bl',x:80,y:320},
+      {id:'e1',x:140,y:140}, {id:'e2',x:260,y:260},
+      {id:'e3',x:260,y:140}, {id:'e4',x:140,y:260}
+    ];
+    planks = [
+      {id:'p1', h1:'l', h2:'c', z:10}, {id:'p2', h1:'c', h2:'r', z:20},
+      {id:'p3', h1:'t', h2:'c', z:30}, {id:'p4', h1:'c', h2:'b', z:40},
+      {id:'p5', h1:'tl', h2:'c', z:50}, {id:'p6', h1:'c', h2:'br', z:60},
+      {id:'p7', h1:'tr', h2:'c', z:70}, {id:'p8', h1:'c', h2:'bl', z:80}
+    ];
+    screws = [
+      {id:'s1', holeId:'l'}, {id:'s2', holeId:'r'}, {id:'s3', holeId:'t'}, {id:'s4', holeId:'b'},
+      {id:'s5', holeId:'tl'}, {id:'s6', holeId:'br'}, {id:'s7', holeId:'tr'}, {id:'s8', holeId:'bl'},
+      {id:'s9', holeId:'c'}
+    ];
+    targetTime = 200;
+  } else if (levelIdx === 7) {
+    // Level 8: Double Box
+    holes = [
+      {id:'o1',x:60,y:60}, {id:'o2',x:340,y:60}, {id:'o3',x:340,y:340}, {id:'o4',x:60,y:340},
+      {id:'i1',x:120,y:120}, {id:'i2',x:280,y:120}, {id:'i3',x:280,y:280}, {id:'i4',x:120,y:280},
+      {id:'e1',x:200,y:60}, {id:'e2',x:200,y:340}, {id:'e3',x:60,y:200}, {id:'e4',x:340,y:200},
+      {id:'e5',x:200,y:120}, {id:'e6',x:200,y:280}, {id:'e7',x:120,y:200}, {id:'e8',x:280,y:200}
+    ];
+    planks = [
+      {id:'p1', h1:'o1', h2:'o2', z:10}, {id:'p2', h1:'o2', h2:'o3', z:20},
+      {id:'p3', h1:'o3', h2:'o4', z:30}, {id:'p4', h1:'o4', h2:'o1', z:40},
+      {id:'p5', h1:'i1', h2:'i2', z:50}, {id:'p6', h1:'i2', h2:'i3', z:60},
+      {id:'p7', h1:'i3', h2:'i4', z:70}, {id:'p8', h1:'i4', h2:'i1', z:80},
+      {id:'p9', h1:'o1', h2:'i1', z:90}, {id:'p10', h1:'o3', h2:'i3', z:100}
+    ];
+    screws = [
+      {id:'s1', holeId:'o1'}, {id:'s2', holeId:'o2'}, {id:'s3', holeId:'o3'}, {id:'s4', holeId:'o4'},
+      {id:'s5', holeId:'i1'}, {id:'s6', holeId:'i2'}, {id:'s7', holeId:'i3'}, {id:'s8', holeId:'i4'}
+    ];
+    targetTime = 220;
+  } else if (levelIdx === 8) {
+    // Level 9: X Marks the Spot
+    holes = [
+      {id:'tl',x:50,y:50}, {id:'br',x:350,y:350},
+      {id:'tr',x:350,y:50}, {id:'bl',x:50,y:350},
+      {id:'c1',x:170,y:170}, {id:'c2',x:230,y:230},
+      {id:'c3',x:230,y:170}, {id:'c4',x:170,y:230},
+      {id:'m1',x:200,y:100}, {id:'m2',x:200,y:300},
+      {id:'m3',x:100,y:200}, {id:'m4',x:300,y:200},
+      {id:'e1',x:200,y:50}, {id:'e2',x:200,y:350}
+    ];
+    planks = [
+      {id:'p1', h1:'tl', h2:'c1', z:10}, {id:'p2', h1:'c2', h2:'br', z:20},
+      {id:'p3', h1:'tr', h2:'c3', z:30}, {id:'p4', h1:'c4', h2:'bl', z:40},
+      {id:'p5', h1:'c1', h2:'c2', z:50}, {id:'p6', h1:'c3', h2:'c4', z:60},
+      {id:'p7', h1:'m1', h2:'m2', z:70}, {id:'p8', h1:'m3', h2:'m4', z:80}
+    ];
+    screws = [
+      {id:'s1', holeId:'tl'}, {id:'s2', holeId:'br'}, {id:'s3', holeId:'tr'}, {id:'s4', holeId:'bl'},
+      {id:'s5', holeId:'c1'}, {id:'s6', holeId:'c2'}, {id:'s7', holeId:'c3'}, {id:'s8', holeId:'c4'},
+      {id:'s9', holeId:'m1'}, {id:'s10', holeId:'m2'}, {id:'s11', holeId:'m3'}, {id:'s12', holeId:'m4'}
+    ];
+    targetTime = 240;
+  } else if (levelIdx >= 9) {
+    // Level 10: The Ultimate Challenge
+    holes = [
+      {id:'a',x:100,y:80}, {id:'b',x:300,y:80},
+      {id:'c',x:50,y:200}, {id:'d',x:200,y:200}, {id:'e',x:350,y:200},
+      {id:'f',x:100,y:320}, {id:'g',x:300,y:320},
+      {id:'h',x:200,y:140}, {id:'i',x:200,y:260},
+      {id:'x1',x:150,y:100}, {id:'x2',x:250,y:100},
+      {id:'x3',x:150,y:300}, {id:'x4',x:250,y:300},
+      {id:'e1',x:150,y:200}, {id:'e2',x:250,y:200},
+      {id:'e3',x:200,y:80}, {id:'e4',x:200,y:320}
+    ];
+    planks = [
+      {id:'p1', h1:'a', h2:'b', z:10},
+      {id:'p2', h1:'c', h2:'d', z:20}, {id:'p3', h1:'d', h2:'e', z:30},
+      {id:'p4', h1:'f', h2:'g', z:40},
+      {id:'p5', h1:'a', h2:'c', z:50}, {id:'p6', h1:'b', h2:'e', z:60},
+      {id:'p7', h1:'c', h2:'f', z:70}, {id:'p8', h1:'e', h2:'g', z:80},
+      {id:'p9', h1:'h', h2:'i', z:90}, {id:'p10', h1:'a', h2:'h', z:100},
+      {id:'p11', h1:'b', h2:'h', z:110}, {id:'p12', h1:'f', h2:'i', z:120},
+      {id:'p13', h1:'g', h2:'i', z:130}
+    ];
+    screws = [
+      {id:'s1', holeId:'a'}, {id:'s2', holeId:'b'}, {id:'s3', holeId:'c'}, {id:'s4', holeId:'d'}, {id:'s5', holeId:'e'},
+      {id:'s6', holeId:'f'}, {id:'s7', holeId:'g'}, {id:'s8', holeId:'h'}, {id:'s9', holeId:'i'}
+    ];
+    targetTime = 300;
   }
 
   return { holes, screws, planks, targetTime };
@@ -221,9 +337,12 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
   const [selectedScrew, setSelectedScrew] = useState(null);
+  const [particles, setParticles] = useState([]);
+  const [combo, setCombo] = useState({ count: 1, lastTime: 0 });
+  const [boardScale, setBoardScale] = useState(1);
   
   const [totalTimeLeft, setTotalTimeLeft] = useState(0);
-  const [levelStars, setLevelStars] = useState([0,0,0,0,0]);
+  const [levelStars, setLevelStars] = useState([0,0,0,0,0,0,0,0,0,0]);
 
   const liveRef = useRef(true);
   const audioCtxRef = useRef(null);
@@ -231,9 +350,24 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   // Physics Engine Refs
   const engineRef = useRef(null);
   const plankBodiesRef = useRef({});
+  const screwBodiesRef = useRef({});
   const constraintsRef = useRef({});
   const rafRef = useRef(null);
   const plankDOMRefs = useRef({}); 
+
+  // --- Initialize Level & Scale ---
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 450) {
+        setBoardScale(window.innerWidth / 450);
+      } else {
+        setBoardScale(1);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Initialize Physics World
   const initPhysics = useCallback((data, initialScrews) => {
@@ -242,8 +376,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     }
     const engine = Engine.create({
         gravity: { x: 0, y: 1 },
-        positionIterations: 10,
-        velocityIterations: 10
+        positionIterations: 64,
+        velocityIterations: 64
     });
     engineRef.current = engine;
     plankBodiesRef.current = {};
@@ -261,18 +395,26 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         const angle = Math.atan2(dy, dx);
 
         const cat = 1 << Math.floor(plank.z / 10);
+        const filter = { category: cat, mask: cat | 0x0001 }; // Collide with same layer and screws (0x0001)
 
-        const body = Bodies.rectangle(cx, cy, length + 36, 30, {
-            angle: angle,
-            frictionAir: 0.005, // FIXED: lower air friction so they don't freeze in mid air
+        // Create a compound body with 2 physical holes at the ends
+        const topBar = Bodies.rectangle(cx, cy - 12, length + 36, 6, { collisionFilter: filter });
+        const bottomBar = Bodies.rectangle(cx, cy + 12, length + 36, 6, { collisionFilter: filter });
+        const middleBar = Bodies.rectangle(cx, cy, Math.max(1, length - 24), 18, { collisionFilter: filter });
+        const leftEnd = Bodies.rectangle(cx - length/2 - 15, cy, 6, 18, { collisionFilter: filter });
+        const rightEnd = Bodies.rectangle(cx + length/2 + 15, cy, 6, 18, { collisionFilter: filter });
+
+        const body = Body.create({
+            parts: [topBar, bottomBar, middleBar, leftEnd, rightEnd],
+            frictionAir: 0.005, 
             friction: 0.8,
             restitution: 0.1,
-            density: 0.05, // FIXED: Higher density to allow them to fall properly
-            collisionFilter: {
-                category: cat,
-                mask: cat 
-            }
+            density: 0.001, 
+            collisionFilter: filter
         });
+        
+        // Rotate the compound body into place
+        Matter.Body.setAngle(body, angle);
         
         plankBodiesRef.current[plank.id] = body;
         World.add(engine.world, body);
@@ -281,51 +423,88 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     updateConstraints(initialScrews, data);
   }, []);
 
-  const updateConstraints = useCallback((currentScrews, data) => {
+  const updateConstraints = useCallback((currentScrews, data, currentSelectedScrew = null) => {
       const engine = engineRef.current;
       if (!engine) return;
 
       Object.values(constraintsRef.current).forEach(c => World.remove(engine.world, c));
       constraintsRef.current = {};
 
+      Object.values(screwBodiesRef.current || {}).forEach(b => World.remove(engine.world, b));
+      screwBodiesRef.current = {};
+
+      const constraintsPerBody = {};
+
       currentScrews.forEach(screw => {
+          if (screw.id === currentSelectedScrew) return; // Do not build constraints or pegs for the currently unscrewed peg
+
           const hole = data.holes.find(h => h.id === screw.holeId);
+          if (!hole) return;
+
+          // Add screw as a physical static peg to block falling planks
+          const screwBody = Bodies.circle(hole.x, hole.y, 10, {
+              isStatic: true,
+              collisionFilter: {
+                  category: 0x0001,
+                  mask: 0xFFFFFFFF // Block all layers
+              }
+          });
+          World.add(engine.world, screwBody);
+          screwBodiesRef.current[screw.id] = screwBody;
+
           data.planks.forEach(plank => {
               const body = plankBodiesRef.current[plank.id];
               if (!body) return;
               
-              if (plank.h1 === hole.id || plank.h2 === hole.id) {
-                  const h1 = data.holes.find(h => h.id === plank.h1);
-                  const h2 = data.holes.find(h => h.id === plank.h2);
-                  
-                  const cx = (h1.x + h2.x) / 2;
-                  const cy = (h1.y + h2.y) / 2;
-                  const angle = Math.atan2(h2.y - h1.y, h2.x - h1.x);
-                  
-                  const vx = hole.x - cx;
-                  const vy = hole.y - cy;
-                  
-                  const localX = vx * Math.cos(-angle) - vy * Math.sin(-angle);
-                  const localY = vx * Math.sin(-angle) + vy * Math.cos(-angle);
+              const h1_orig = data.holes.find(h => h.id === plank.h1);
+              const h2_orig = data.holes.find(h => h.id === plank.h2);
+              const dx = h2_orig.x - h1_orig.x;
+              const dy = h2_orig.y - h1_orig.y;
+              const length = Math.hypot(dx, dy);
 
-                  // FIXED: Teleport bug. Check if plank is physically at the hole before attaching.
-                  const worldPointA = Vector.add(body.position, Vector.rotate({ x: localX, y: localY }, body.angle));
-                  const dist = Math.hypot(worldPointA.x - hole.x, worldPointA.y - hole.y);
+              const localHoles = [
+                  { x: -length / 2, y: 0, id: plank.h1 },
+                  { x: length / 2, y: 0, id: plank.h2 }
+              ];
+
+              for (const localH of localHoles) {
+                  const worldPoint = Vector.add(body.position, Vector.rotate(localH, body.angle));
+                  const dist = Math.hypot(worldPoint.x - hole.x, worldPoint.y - hole.y);
                   
-                  // Only attach if it's within 30px of the hole physically!
-                  if (dist < 30) {
+                  if (dist < 20) {
                       const constraint = Constraint.create({
                           bodyA: body,
-                          pointA: { x: localX, y: localY },
+                          pointA: { x: localH.x, y: localH.y },
                           pointB: { x: hole.x, y: hole.y },
                           stiffness: 1, 
                           length: 0
                       });
                       World.add(engine.world, constraint);
-                      constraintsRef.current[`${plank.id}-${screw.id}`] = constraint;
+                      constraintsRef.current[`${plank.id}-${screw.id}-${localH.id}`] = constraint;
+                      constraintsPerBody[plank.id] = (constraintsPerBody[plank.id] || 0) + 1;
                   }
               }
           });
+      });
+
+      // Completely lock bodies that have 2 or more constraints so they don't sag at all under gravity
+      data.planks.forEach(plank => {
+          const body = plankBodiesRef.current[plank.id];
+          if (!body) return;
+          const numConstraints = constraintsPerBody[plank.id] || 0;
+          if (numConstraints >= 2) {
+              Matter.Body.setStatic(body, true);
+          } else {
+              if (body.isStatic) {
+                  Matter.Body.setStatic(body, false);
+                  // Apply a microscopic nudge to break perfect vertical balance (inverted pendulum)
+                  Matter.Body.applyForce(body, body.position, { 
+                      x: (Math.random() - 0.5) * 0.005, 
+                      y: 0 
+                  });
+              }
+              Matter.Sleeping.set(body, false);
+          }
       });
   }, []);
 
@@ -378,8 +557,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   }, [levelData, initPhysics]);
 
   useEffect(() => {
-    if (phase === "playing") updateConstraints(screws, levelData);
-  }, [screws, updateConstraints, levelData, phase]);
+    if (phase === "playing") updateConstraints(screws, levelData, selectedScrew);
+  }, [screws, updateConstraints, levelData, phase, selectedScrew]);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -400,7 +579,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   useEffect(() => {
     if (phase === "playing") {
       if (fallenPlanks.length === levelData.planks.length && levelData.planks.length > 0) {
-        if (currentLevelIdx >= 4) {
+        if (currentLevelIdx >= 9) {
           setPhase("game_complete");
           playSound("complete", audioCtxRef);
         } else {
@@ -419,7 +598,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   }, [fallenPlanks, phase, levelData.planks.length, currentLevelIdx, time]);
 
   const loadLevel = (idx) => {
-    if (idx > 4) return;
+    if (idx > 9) return;
     setCurrentLevelIdx(idx);
     const nextData = generateLevelData(idx);
     setLevelData(nextData);
@@ -431,7 +610,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     initPhysics(nextData, nextData.screws);
   };
 
-  const handleNextLevel = () => { if (currentLevelIdx < 4) loadLevel(currentLevelIdx + 1); };
+  const handleNextLevel = () => { if (currentLevelIdx < 9) loadLevel(currentLevelIdx + 1); };
   const handleRetry = () => { loadLevel(currentLevelIdx); };
   const handlePlayAgain = () => { setTotalTimeLeft(0); loadLevel(0); };
 
@@ -446,11 +625,30 @@ export function NutCraft({ onOutcome, reviveSignal }) {
           const plankId = Object.keys(plankBodiesRef.current).find(k => plankBodiesRef.current[k] === body);
           if (plankId) {
              const plank = levelData.planks.find(p => p.id === plankId);
-             
-             // FIXED: if a plank is supposed to be here, but has swung away, Query.point won't hit it anyway
-             if (plank && (plank.h1 === hole.id || plank.h2 === hole.id)) {
-                 continue; 
-             } else {
+             if (!plank) continue;
+
+             const h1_orig = levelData.holes.find(h => h.id === plank.h1);
+             const h2_orig = levelData.holes.find(h => h.id === plank.h2);
+             const dx = h2_orig.x - h1_orig.x;
+             const dy = h2_orig.y - h1_orig.y;
+             const length = Math.hypot(dx, dy);
+
+             const localHoles = [
+                 { x: -length / 2, y: 0 },
+                 { x: length / 2, y: 0 }
+             ];
+
+             let hasMatchingHole = false;
+             for (const localH of localHoles) {
+                 const worldPoint = Vector.add(body.position, Vector.rotate(localH, body.angle));
+                 const dist = Math.hypot(worldPoint.x - hole.x, worldPoint.y - hole.y);
+                 if (dist < 20) {
+                     hasMatchingHole = true;
+                     break;
+                 }
+             }
+
+             if (!hasMatchingHole) {
                  return true; 
              }
           }
@@ -473,8 +671,32 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     for (const body of overlapping) {
         const plankId = Object.keys(plankBodiesRef.current).find(k => plankBodiesRef.current[k] === body);
         const plank = levelData.planks.find(p => p.id === plankId);
-        if (plank && plank.h1 !== hole.id && plank.h2 !== hole.id) {
-            if (plank.z > nativeZ) blocked = true;
+        if (plank) {
+            // Check if this plank has a hole overlapping the screw hole
+             const h1_orig = levelData.holes.find(h => h.id === plank.h1);
+             const h2_orig = levelData.holes.find(h => h.id === plank.h2);
+             const dx = h2_orig.x - h1_orig.x;
+             const dy = h2_orig.y - h1_orig.y;
+             const length = Math.hypot(dx, dy);
+
+             const localHoles = [
+                 { x: -length / 2, y: 0 },
+                 { x: length / 2, y: 0 }
+             ];
+
+             let hasMatchingHole = false;
+             for (const localH of localHoles) {
+                 const worldPoint = Vector.add(body.position, Vector.rotate(localH, body.angle));
+                 const dist = Math.hypot(worldPoint.x - hole.x, worldPoint.y - hole.y);
+                 if (dist < 20) {
+                     hasMatchingHole = true;
+                     break;
+                 }
+             }
+
+             if (!hasMatchingHole && plank.z > nativeZ) {
+                 blocked = true;
+             }
         }
     }
 
@@ -503,12 +725,43 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
     if (isHoleBlockedByPhysics(holeId)) {
        playSound("error", audioCtxRef);
+       setLives(l => {
+           const newLives = l - 1;
+           if (newLives <= 0) setPhase("failed");
+           return newLives;
+       });
        return; 
     }
 
     playSound("place", audioCtxRef);
-    setScrews(prev => prev.map(s => s.id === selectedScrew ? { ...s, holeId } : s));
+    
+    const now = Date.now();
+    let newCombo = 1;
+    if (now - combo.lastTime < 3000) {
+        newCombo = combo.count + 1;
+    }
+    setCombo({ count: newCombo, lastTime: now });
+    setScore(s => s + (10 * newCombo));
+
+    const holeObj = levelData.holes.find(h => h.id === holeId);
+    if (holeObj) {
+        const newParticles = Array.from({ length: 8 }).map((_, i) => ({
+            id: Date.now() + i,
+            x: holeObj.x,
+            y: holeObj.y,
+            tx: holeObj.x + (Math.random() - 0.5) * 80,
+            ty: holeObj.y + (Math.random() - 0.5) * 80
+        }));
+        setParticles(p => [...p, ...newParticles]);
+        setTimeout(() => {
+            setParticles(p => p.filter(part => !newParticles.find(np => np.id === part.id)));
+        }, 600);
+    }
+
+    const newScrews = screws.map(s => s.id === selectedScrew ? { ...s, holeId } : s);
+    setScrews(newScrews);
     setSelectedScrew(null);
+    updateConstraints(newScrews, levelData, null);
   };
 
   const calcStars = () => {
@@ -520,17 +773,17 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   if (phase === "level_select") {
     return (
       <GameShell title="Nut Craft" score={score} lives={lives} phase="playing" onRestart={() => setPhase("playing")}>
-        <div className="nc-modal" style={{background: 'rgba(20, 15, 10, 1)'}}>
+        <div className="nc-modal">
           <h1 style={{fontSize: 28, marginBottom: 20}}>NUTCRAFT LEVELS</h1>
-          <div style={{display:'flex', flexDirection:'column', gap: 12, width: '80%'}}>
-            {[1,2,3,4,5].map((lvl, idx) => (
+          <div style={{display:'flex', flexDirection:'column', gap: 12, width: '80%', maxHeight: '300px', overflowY: 'auto'}}>
+            {[1,2,3,4,5,6,7,8,9,10].map((lvl, idx) => (
               <button key={lvl} className="nc-modal-btn" onClick={() => loadLevel(idx)}
-                style={{display:'flex', justifyContent:'space-between', padding: '16px 24px', background: '#3e2723', border: '1px solid #5d4037'}}>
+                style={{display:'flex', justifyContent:'space-between', padding: '16px 24px', border: 'none'}}>
                 <span>LEVEL {lvl}</span><span>{"⭐".repeat(levelStars[idx])}</span>
               </button>
             ))}
           </div>
-          <button className="nc-modal-btn" onClick={() => loadLevel(0)} style={{marginTop: 32, width:'80%', background: '#ff9800', border: '1px solid #e65100'}}>
+          <button className="nc-modal-btn" onClick={() => loadLevel(0)} style={{marginTop: 32, width:'80%'}}>
             BACK
           </button>
         </div>
@@ -546,7 +799,10 @@ export function NutCraft({ onOutcome, reviveSignal }) {
       onResume={() => setPhase("playing")} 
       onRestart={handleRetry}
     >
-      <div className="nutcraft-board" id="nc-board">
+      <div className="nutcraft-board" id="nc-board" style={{ transform: `scale(${boardScale})`, transformOrigin: 'top center' }}>
+        {particles.map(p => (
+          <div key={p.id} className="particle" style={{ left: p.x, top: p.y, '--tx': `${p.tx - p.x}px`, '--ty': `${p.ty - p.y}px` }} />
+        ))}
         {phase === "level_complete" && (
           <div className="nc-modal">
             <h1>LEVEL COMPLETE!</h1><div className="nc-stars">{"⭐".repeat(calcStars())}</div>
@@ -556,24 +812,24 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         )}
 
         {phase === "game_complete" && (
-          <div className="nc-modal" style={{background: 'rgba(20, 15, 10, 0.95)'}}>
+          <div className="nc-modal">
             <h1 style={{fontSize: 28, textAlign: 'center'}}>NUTCRAFT COMPLETE!</h1>
-            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>ALL 5 LEVELS COMPLETED</p>
+            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>ALL 10 LEVELS COMPLETED</p>
             <div className="nc-stars" style={{marginBottom: 16}}>{"⭐".repeat(calcStars())}</div>
             <div className="nc-modal-stats" style={{fontSize: 16, marginBottom: 24}}>Total Score: {score + (totalTimeLeft * 2)}<br/>Best Time Combined: {totalTimeLeft}s</div>
             <div style={{display:'flex', gap: 12, flexDirection: 'column', width: '80%'}}>
-              <button className="nc-modal-btn" onClick={handlePlayAgain} style={{padding: '12px 16px', background: '#4caf50'}}>PLAY AGAIN</button>
-              <button className="nc-modal-btn" onClick={() => setPhase("level_select")} style={{padding: '12px 16px', background: '#1976d2', border: '1px solid #1565c0'}}>LEVEL SELECT</button>
+              <button className="nc-modal-btn primary" onClick={handlePlayAgain} style={{padding: '12px 16px'}}>PLAY AGAIN</button>
+              <button className="nc-modal-btn" onClick={() => setPhase("level_select")} style={{padding: '12px 16px'}}>LEVEL SELECT</button>
             </div>
           </div>
         )}
         
         {phase === "failed" && (
           <div className="nc-modal">
-            <h1 style={{color: '#ff5252'}}>OUT OF TIME</h1>
-            <div className="nc-modal-stats">Planks Remaining: {levelData.planks.length - fallenPlanks.length}</div>
-            <div style={{display:'flex', gap: 12}}>
-              <button className="nc-modal-btn" style={{background:'#f57c00'}} onClick={handleRetry}>RETRY</button>
+            <h1 style={{color: '#ff5252'}}>{lives <= 0 ? 'GAME OVER' : 'OUT OF TIME'}</h1>
+            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>Score: {score}</p>
+            <div style={{display:'flex', gap: 12, flexDirection: 'column', width: '80%'}}>
+              <button className="nc-modal-btn primary" onClick={handleRetry} style={{padding: '12px 16px'}}>RETRY</button>
             </div>
           </div>
         )}
@@ -610,8 +866,8 @@ export function NutCraft({ onOutcome, reviveSignal }) {
               }}>
               <div className="plank" style={{ width: '100%', height: '100%', borderRadius: 18, position: 'relative' }}>
                 <div className="plank-texture" />
-                <div className="blue-bracket" style={{ position: 'absolute', top: 0, left: 0 }}/>
-                <div className="blue-bracket" style={{ position: 'absolute', top: 0, right: 0 }}/>
+                <div className="metal-bracket" style={{ position: 'absolute', top: 0, left: 0 }}/>
+                <div className="metal-bracket" style={{ position: 'absolute', top: 0, right: 0 }}/>
               </div>
             </div>
           );
@@ -620,18 +876,30 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         {screws.map(screw => {
           const hole = levelData.holes.find(h => h.id === screw.holeId);
           const isSelected = selectedScrew === screw.id;
+          
+          const holdingPlanks = levelData.planks.filter(p => (p.h1 === hole.id || p.h2 === hole.id) && !fallenPlanks.includes(p.id));
+          // Screws should always remain visible above fallen planks so the player can see them.
+          const maxZ = holdingPlanks.length > 0 ? Math.max(...holdingPlanks.map(p => p.z)) : 100;
+          const dynamicZ = isSelected ? 250 : maxZ + 6;
 
           return (
             <div
               key={screw.id}
               className={`screw-interactive ${isSelected ? 'selected' : ''}`}
-              style={{ left: hole.x, top: hole.y }}
+              style={{ left: `${hole.x}px`, top: `${hole.y}px`, zIndex: isSelected ? 250 : maxZ + 6 }}
               onClick={() => handleScrewClick(screw.id)}
             >
-              <div className="screw-visual"><div className="screw-cross" /></div>
+              <div className="screw-visual" style={{ background: 'radial-gradient(circle at 30% 30%, #e0e5ec, #788591 60%, #4a5568)' }}>
+                <div className="screw-cross" style={{ color: '#111', fontSize: '18px', fontWeight: 'bold' }}>X</div>
+              </div>
             </div>
           );
         })}
+        {screws.length === 0 && (
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(255,0,0,0.5)', zIndex: 9999, color: 'white', fontSize: '32px', fontWeight: 'bold', textAlign: 'center' }}>
+            SCREWS ARRAY IS EMPTY!
+          </div>
+        )}
       </div>
 
       <style>{`

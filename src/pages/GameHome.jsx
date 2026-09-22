@@ -98,6 +98,10 @@ export default function GameHome() {
           {/* Left Column: Hero Art */}
           <motion.div className={styles.heroColumn} initial="hidden" animate="visible" variants={fadeUp}>
             <div className={styles.heroCardWrapper}>
+              <div 
+                className={styles.blurBg} 
+                style={{ backgroundImage: `url(${game.image})` }}
+              />
               <img className={styles.heroArt} src={game.image} alt={game.name} />
             </div>
           </motion.div>

@@ -22,12 +22,17 @@ export default function GameCard({ game }) {
   return (
     <article className={styles.card}>
       <div className={styles.artBox}>
+        {/* Blurred background to fill space */}
+        <div 
+          className={styles.blurBg} 
+          style={{ backgroundImage: `url(${game.image})` }}
+        />
+        {/* Actual image, fully contained so no info is lost */}
         <img
           src={game.image}
           alt={game.name}
           loading="lazy"
           className={styles.artImage}
-          style={{ objectPosition: game.objectPosition || "center" }}
         />
         <div className={styles.categoryBadge}>
           <Sparkles size={12} /> {game.category || "Arcade"}

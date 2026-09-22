@@ -1,6 +1,6 @@
 import BladeMaster from "../pages/BladeMaster";
 import SliceStorm from "./SliceStorm/Game";
-import { NutCraft } from "./NutCraft";
+import { GameBoard } from "../components/GameBoard";
 import { BowlExa } from "./BowlExa";
 import { BlockCrush } from "./BlockCrush";
 import { CosmoWarrior } from "./CosmoWarrior";
@@ -14,7 +14,7 @@ import { RealmClash } from "./RealmClash";
 
 export const GAME_COMPONENTS = {
   "blade-master": (props) => <BladeMaster embedded autoStart {...props} />,
-  "nut-craft": NutCraft,
+  "nut-craft": GameBoard,
   "bowlexa": BowlExa,
   "block-crush": BlockCrush,
   "slice-storm": SliceStorm,

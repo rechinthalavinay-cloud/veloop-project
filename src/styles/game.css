@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+:root {
+  --bg-color: #0b0c10;
+  --panel-bg: rgba(20, 24, 36, 0.7);
+  --bolt-silver: #a0a5b0;
+  --bolt-dark: #1a1f26;
+  --cyan-glow: #00e5ff;
+  --wood-base: #8b5a2b;
+  --wood-dark: #5c3a21;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 30%, #1c1d33 0%, var(--bg-color) 70%);
+}
+
+.game-hud {
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-lives {
+  color: #ff4757;
+  letter-spacing: 2px;
+}
+
+.game-board-wrapper {
+  position: relative;
+  width: 400px;
+  height: 500px;
+  border-radius: 24px;
+  background: #11141c;
+  box-shadow: 
+    inset 0 0 50px rgba(0,0,0,0.8),
+    0 20px 40px rgba(0,0,0,0.6),
+    0 0 0 2px rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+
+/* Subtle grid */
+.game-board-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.bolt-interactive {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bolt-interactive:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.bolt-visual {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--bolt-silver) 50%, #555);
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.6),
+    inset 0 -2px 4px rgba(0,0,0,0.4),
+    inset 0 2px 2px rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.bolt-visual::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--bolt-dark);
+  border-radius: 50%;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,1);
+}
+
+.bolt-cross {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  z-index: 2;
+  transform: rotate(45deg);
+}
+
+.bolt-cross::before, .bolt-cross::after {
+  content: "";
+  position: absolute;
+  background: #111;
+  border-radius: 1px;
+}
+.bolt-cross::before { top: 0; bottom: 0; left: 40%; right: 40%; }
+.bolt-cross::after { left: 0; right: 0; top: 40%; bottom: 40%; }
+
+.plank {
+  position: absolute;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--wood-base) 0%, var(--wood-dark) 100%);
+  box-shadow: 
+    0 8px 16px rgba(0,0,0,0.7),
+    inset 0 2px 4px rgba(255,255,255,0.2),
+    inset 0 -2px 4px rgba(0,0,0,0.4);
+  border: 1px solid #3a2211;
+  pointer-events: none;
+}
+
+.plank-texture {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.7;
+  background-image: 
+    repeating-linear-gradient(
+      90deg, 
+      transparent, 
+      transparent 10px, 
+      rgba(0,0,0,0.15) 10px, 
+      rgba(0,0,0,0.15) 12px
+    );
+}
+
+.metal-bracket {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  background: radial-gradient(circle at 30% 30%, #e0e0e0, #888);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.8);
+  transform: translate(-50%, -50%);
+}
+.metal-bracket::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 40px rgba(0, 229, 255, 0.1);
+  padding: 40px;
+  border-radius: 24px;
+  text-align: center;
+  color: white;
+  min-width: 300px;
+}
+
+.modal-card h1 {
+  margin: 0 0 20px;
+  font-size: 32px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.modal-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+  transition: all 0.2s;
+}
+
+.modal-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+
+.modal-btn.primary {
+  background: linear-gradient(135deg, #00e5ff, #0077b6);
+  border: none;
+  box-shadow: 0 10px 20px rgba(0, 229, 255, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--cyan-glow);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1500;
+  box-shadow: 0 0 10px var(--cyan-glow), 0 0 5px #fff;
+  animation: particleAnim 0.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes particleAnim {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}

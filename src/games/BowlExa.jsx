@@ -152,6 +152,29 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       return { x: screenX, y: screenY, r: (radius || 0.05) * 300 * scale, scale };
     };
 
+    const horizonY = project(0, 1.4, 0).y;
+
+    // Cache Gradients for Performance (Fixes Lag)
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, "#1c1917"); 
+    bgGrad.addColorStop(1, "#0a0a0a");
+
+    const laneGrad = ctx.createLinearGradient(0, H, 0, horizonY);
+    laneGrad.addColorStop(0, "#e8a96d"); // brighter maple highlight
+    laneGrad.addColorStop(0.5, "#a86b32");
+    laneGrad.addColorStop(1, "#29180b");
+
+    const pinGrad = ctx.createLinearGradient(-30, 0, 30, 0); 
+    pinGrad.addColorStop(0, "#8a9499"); pinGrad.addColorStop(0.3, "#ffffff");
+    pinGrad.addColorStop(0.8, "#dbe1e3"); pinGrad.addColorStop(1, "#5b6d75");
+
+    const ballGrad = ctx.createRadialGradient(-10, -10, 3, 0, 0, 33);
+    ballGrad.addColorStop(0, "#ef5350"); ballGrad.addColorStop(0.4, "#8e0000"); ballGrad.addColorStop(1, "#1a0000");
+
+    const spotlightGrad = ctx.createRadialGradient(W/2, H/3, 50, W/2, H/3, 350);
+    spotlightGrad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+    spotlightGrad.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+
     const handlePtrDown = (e) => {
       if (s.state !== "idle" || s.throws <= 0) return;
       if (e.cancelable) e.preventDefault();
@@ -342,48 +365,31 @@ export function BowlExa({ onOutcome, reviveSignal }) {
         if (s.cameraShake < 0.5) s.cameraShake = 0;
       }
 
-      // Background Arcade Environment 
+      // Realistic Ambient Environment 
       const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, "#02000d");
-      bgGrad.addColorStop(0.3, "#10002b");
-      bgGrad.addColorStop(1, "#000000");
+      bgGrad.addColorStop(0, "#1c1917"); 
+      bgGrad.addColorStop(1, "#0a0a0a");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
       
       const horizonY = project(0, 1.4, 0).y;
       
-      // Arcade Wall Scenery (Neon Grid)
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.15)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 0; i < W; i += 30) { ctx.moveTo(i, 0); ctx.lineTo(i, horizonY); }
-      for (let i = 0; i < horizonY; i += 30) { ctx.moveTo(0, i); ctx.lineTo(W, i); }
-      ctx.stroke();
-      
-      // Neon Veloop Sign
-      ctx.save();
-      ctx.textAlign = "center";
-      ctx.font = "900 36px sans-serif";
-      ctx.fillStyle = "#ff007f";
-      ctx.shadowColor = "#ff007f";
-      ctx.shadowBlur = 20;
-      ctx.fillText("VELOOP", W/2, horizonY / 2);
-      ctx.font = "700 16px sans-serif";
-      ctx.fillStyle = "#00e5ff";
-      ctx.shadowColor = "#00e5ff";
-      ctx.fillText("BOWLING", W/2, horizonY / 2 + 24);
-      ctx.restore();
-      
-      ctx.strokeStyle = "#00e5ff";
+      // Wood Paneling Back Wall
+      ctx.fillStyle = "#292524";
+      ctx.fillRect(0, horizonY - 120, W, 120);
+      ctx.strokeStyle = "#1c1917";
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(W, horizonY); ctx.stroke();
-      ctx.shadowColor = "#00e5ff"; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
+      for (let i = 0; i < W; i += 40) { ctx.beginPath(); ctx.moveTo(i, horizonY - 120); ctx.lineTo(i, horizonY); ctx.stroke(); }
+      
+      // Shadow / Pit
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, horizonY - 10, W, 20);
 
       // Realistic Glossy Wood Lane
       const laneGrad = ctx.createLinearGradient(0, H, 0, horizonY);
-      laneGrad.addColorStop(0, "#3e1a6c"); 
-      laneGrad.addColorStop(0.5, "#220845");
-      laneGrad.addColorStop(1, "#0a001a");
+      laneGrad.addColorStop(0, "#d9975b"); // Light maple
+      laneGrad.addColorStop(0.5, "#a86b32");
+      laneGrad.addColorStop(1, "#362210");
       ctx.fillStyle = laneGrad;
       ctx.beginPath();
       const tl = project(-0.7, 1.4, 0);
@@ -393,25 +399,39 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(bl.x, bl.y);
       ctx.fill();
 
+      // Atmospheric Spotlight Overlay
+      const spotlightGrad = ctx.createRadialGradient(W/2, H/3, 50, W/2, H/3, 350);
+      spotlightGrad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+      spotlightGrad.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+      ctx.fillStyle = spotlightGrad;
+      ctx.beginPath();
+      ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.lineTo(bl.x, bl.y);
+      ctx.fill();
+
       // Wood plank lines for realism
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      for(let w = -0.6; w <= 0.6; w += 0.2) {
+      for(let w = -0.68; w <= 0.68; w += 0.04) {
          const t = project(w, 1.4, 0);
          const b = project(w, -0.1, 0);
          ctx.moveTo(t.x, t.y); ctx.lineTo(b.x, b.y);
       }
       ctx.stroke();
+      
+      // Lane arrows (Aiming markers)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      for(let aw of [-0.3, 0, 0.3]) {
+         const ap = project(aw, -0.05, 0);
+         ctx.beginPath(); ctx.moveTo(ap.x, ap.y - 10); ctx.lineTo(ap.x - 5, ap.y + 5); ctx.lineTo(ap.x + 5, ap.y + 5); ctx.fill();
+      }
 
-      // Lane Edge Lasers (Gutters)
-      ctx.strokeStyle = "#e91e63"; 
-      ctx.lineWidth = 4;
-      ctx.shadowColor = "#e91e63";
-      ctx.shadowBlur = 10;
-      ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(bl.x, bl.y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(tr.x, tr.y); ctx.lineTo(br.x, br.y); ctx.stroke();
-      ctx.shadowBlur = 0;
+      // Realistic Gutters (Dark grey/black plastic)
+      ctx.strokeStyle = "#1a1a1a"; 
+      ctx.lineWidth = 18; 
+      ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(tl.x - 8, tl.y); ctx.lineTo(bl.x - 14, bl.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tr.x + 8, tr.y); ctx.lineTo(br.x + 14, br.y); ctx.stroke();
 
       const drawObject = (obj, isReflect) => {
         if (obj.type === 'pin') {
@@ -450,7 +470,7 @@ export function BowlExa({ onOutcome, reviveSignal }) {
           ctx.fill();
           
           ctx.strokeStyle = "#d32f2f";
-          ctx.lineWidth = p.r * 0.3;
+          ctx.lineWidth = Math.max(1, p.r * 0.3);
           ctx.beginPath(); ctx.moveTo(p.x - p.r*0.4, p.y - p.r*2.1); ctx.lineTo(p.x + p.r*0.4, p.y - p.r*2.1); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(p.x - p.r*0.35, p.y - p.r*1.5); ctx.lineTo(p.x + p.r*0.35, p.y - p.r*1.5); ctx.stroke();
 
@@ -475,11 +495,11 @@ export function BowlExa({ onOutcome, reviveSignal }) {
              ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r*0.8, p.r*1.1, p.r*0.4, 0, 0, Math.PI*2); ctx.fill();
           }
 
-          // Darker heavier ball color
+          // Realistic marbled bowling ball (Deep Crimson/Black)
           const bGrad = ctx.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
-          bGrad.addColorStop(0, "#d500f9"); 
-          bGrad.addColorStop(0.4, "#6a1b9a");
-          bGrad.addColorStop(1, "#12005e"); 
+          bGrad.addColorStop(0, "#e53935"); 
+          bGrad.addColorStop(0.4, "#8e0000");
+          bGrad.addColorStop(1, "#1a0000"); 
           ctx.fillStyle = bGrad;
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
           
@@ -516,18 +536,39 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       objects.forEach(o => drawObject(o, true));
       objects.forEach(o => drawObject(o, false));
 
-      // Draw fallen pins flat
+      // Draw fallen pins flat (rotated to floor perspective)
       s.pins.forEach(obj => {
          if (!obj.up) {
             const p = project(obj.x, obj.y, obj.r || PIN_RADIUS);
             ctx.save();
             ctx.translate(p.x, p.y);
-            ctx.fillStyle = "rgba(120, 144, 156, 0.9)"; 
-            ctx.rotate(obj.rotX * 2);
-            ctx.beginPath(); ctx.ellipse(0, 0, p.r*1.4, p.r*0.5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "rgba(229, 57, 53, 0.8)"; 
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.moveTo(-p.r*0.5, -p.r*0.3); ctx.lineTo(-p.r*0.5, p.r*0.3); ctx.stroke();
+            
+            // Fast drop shadow for fallen pin
+            ctx.fillStyle = "rgba(0,0,0,0.4)";
+            ctx.beginPath(); ctx.ellipse(p.r*0.2, p.r*0.4, p.r*1.5, p.r*0.6, obj.rotX * 2, 0, Math.PI*2); ctx.fill();
+            
+            // Draw fallen pin
+            ctx.rotate(Math.PI / 2 + obj.rotX * 2);
+            ctx.scale(1, 0.6); // squash for floor perspective
+            
+            const fallenGrad = ctx.createLinearGradient(-p.r*0.8, 0, p.r*0.8, 0);
+            fallenGrad.addColorStop(0, "#9ea7aa"); fallenGrad.addColorStop(0.3, "#ffffff");
+            fallenGrad.addColorStop(0.8, "#e0e4e6"); fallenGrad.addColorStop(1, "#78909c");
+            
+            ctx.fillStyle = fallenGrad;
+            ctx.beginPath();
+            ctx.moveTo(-p.r * 0.5, 0); 
+            ctx.bezierCurveTo(-p.r * 0.8, -p.r * 0.5, -p.r * 0.9, -p.r * 1.5, -p.r * 0.5, -p.r * 2.2); 
+            ctx.bezierCurveTo(-p.r * 0.3, -p.r * 2.6, -p.r * 0.3, -p.r * 3.2, 0, -p.r * 3.6); 
+            ctx.bezierCurveTo(p.r * 0.3, -p.r * 3.2, p.r * 0.3, -p.r * 2.6, p.r * 0.5, -p.r * 2.2); 
+            ctx.bezierCurveTo(p.r * 0.9, -p.r * 1.5, p.r * 0.8, -p.r * 0.5, p.r * 0.5, 0); 
+            ctx.fill();
+            
+            ctx.strokeStyle = "#d32f2f";
+            ctx.lineWidth = Math.max(1, p.r * 0.3);
+            ctx.beginPath(); ctx.moveTo(-p.r*0.4, -p.r*2.1); ctx.lineTo(p.r*0.4, -p.r*2.1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-p.r*0.35, -p.r*1.5); ctx.lineTo(p.r*0.35, -p.r*1.5); ctx.stroke();
+            
             ctx.restore();
          }
       });
@@ -551,10 +592,10 @@ export function BowlExa({ onOutcome, reviveSignal }) {
             const initVy = 0.015 + (power * 0.05);
             const spin = (dx / dy) * 0.002;
             
-            ctx.strokeStyle = `rgba(0, 229, 255, ${Math.min(1, power)})`;
-            ctx.lineWidth = 3 + power * 2;
-            ctx.setLineDash([15, 10]);
-            ctx.lineDashOffset = -s.tick * 2;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.6, power)})`;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.lineDashOffset = -(Date.now() % 1000) / 10;
             ctx.beginPath();
             
             let px = s.ball.x;
@@ -584,11 +625,15 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       s.messages.forEach(m => {
          ctx.save();
          ctx.globalAlpha = Math.min(1, m.life / 20);
-         ctx.fillStyle = m.color;
          ctx.font = `900 ${m.scale * 24}px sans-serif`;
          ctx.textAlign = "center";
-         ctx.shadowColor = m.color;
-         ctx.shadowBlur = 15;
+         
+         // Manual high-performance drop shadow
+         ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+         ctx.fillText(m.text, W/2 + 4, H/2 - (100 - m.life) + 4);
+         
+         // Actual text
+         ctx.fillStyle = m.color;
          ctx.fillText(m.text, W/2, H/2 - (100 - m.life));
          ctx.restore();
       });
@@ -617,14 +662,14 @@ export function BowlExa({ onOutcome, reviveSignal }) {
       extraHud={<span id="be-throws" style={{ color: "#64b5f6" }}>🎳 {hud.throws} left</span>}
       phase={hud.phase} onPause={()=>{}} onResume={()=>{}} onRestart={restart}>
       <div style={{
-        border: "2px solid #00e5ff",
-        boxShadow: "0 0 20px rgba(0, 229, 255, 0.4)",
-        borderRadius: "16px",
+        border: "4px solid #3e2723",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.8)",
+        borderRadius: "8px",
         padding: "4px",
         margin: "0 auto",
         width: "100%",
         maxWidth: "min(420px, calc(80vh * 360 / 520))",
-        backgroundColor: "#02000d"
+        backgroundColor: "#1c1917"
       }}>
         <canvas ref={canvasRef} width={360} height={520}
           style={{ width: "100%", height: "auto", display: "block", touchAction: "none", borderRadius: 12 }} />

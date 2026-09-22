@@ -1,36 +1,40 @@
 /* =========================================================
-   WOOD NUTS & BOLTS PUZZLE THEME - HYPER REALISTIC
+   WOOD NUTS & BOLTS PUZZLE THEME - PREMIUM PROFESSIONAL
    ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
 
 .nutcraft-board {
   position: relative;
-  width: 100%;
+  width: 400px;
   height: 400px;
-  max-width: 340px;
   margin: 0 auto;
-  border-radius: 12px;
-  background: 
-    linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.5) 100%),
-    radial-gradient(circle at center, #c77d36 0%, #7d4415 100%);
+  border-radius: 16px;
+  background-color: #1a1a24;
+  background-image: 
+    radial-gradient(circle at 50% 0%, #3e3e5c 0%, transparent 70%),
+    radial-gradient(circle at 50% 100%, #151522 0%, #0a0a10 100%);
   box-shadow: 
-    inset 0 0 80px rgba(0, 0, 0, 0.9),
-    0 12px 32px rgba(0, 0, 0, 0.6),
-    0 0 0 1px #4a2810;
+    inset 0 0 100px rgba(0, 0, 0, 0.9),
+    0 20px 40px rgba(0, 0, 0, 0.7),
+    0 0 0 8px #2b2b36,
+    0 0 0 10px #1a1a24;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
+  font-family: 'Inter', sans-serif;
 }
 
+/* Subtle grid/texture overlay */
 .nutcraft-board::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: repeating-linear-gradient(
-    3deg, transparent, transparent 15px, rgba(0, 0, 0, 0.08) 15px, rgba(0, 0, 0, 0.08) 16px
-  ), repeating-linear-gradient(
-    -1deg, transparent, transparent 6px, rgba(0, 0, 0, 0.05) 6px, rgba(0, 0, 0, 0.05) 8px
-  );
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
   pointer-events: none;
   z-index: 1;
 }
@@ -39,92 +43,85 @@
   position: absolute;
   width: 24px;
   height: 24px;
-  background: radial-gradient(circle at center, #050505 50%, #1a1a1a 95%);
+  background: radial-gradient(circle at center, #000 20%, #121212 80%);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   box-shadow: 
-    inset 0 8px 12px rgba(0,0,0,1), 
-    inset 0 2px 4px rgba(0,0,0,0.8),
-    0 1px 2px rgba(255,255,255,0.25);
-  border: 1px solid rgba(0,0,0,0.9);
+    inset 0 4px 8px rgba(0,0,0,1), 
+    0 1px 2px rgba(255,255,255,0.1);
+  border: 1px solid #000;
   z-index: 5;
 }
 
 .hole-interactive {
   cursor: pointer;
-  z-index: 150; /* Make it clickable above planks */
+  z-index: 5; /* Matches normal hole, keeps it below planks and screws */
 }
 
 .hole-interactive::after {
-  content: "";
-  position: absolute;
-  inset: -15px;
-  border-radius: 50%;
-}
-
-.plank-wrapper {
-  width: 0;
-  height: 0;
-  transform-origin: 0 0;
-  pointer-events: none;
-}
-
-.plank-wrapper.falling,
-.plank-wrapper.fallen {
-  pointer-events: none;
-}
-
-.plank-wrapper.fallen {
-  opacity: 0;
+  content: none;
 }
 
 .plank {
+  /* Flat, high-performance hardware accelerated shadow */
   box-shadow: 
-    0 16px 24px rgba(0,0,0,0.6), 
-    inset 0 2px 3px rgba(255,255,255,0.3),
-    inset 0 -4px 8px rgba(0,0,0,0.5);
-  border: 1px solid rgba(0,0,0,0.9);
+    0 8px 16px rgba(0,0,0,0.6),
+    inset 0 2px 4px rgba(255,255,255,0.2),
+    inset 0 -4px 8px rgba(0,0,0,0.4);
+  border: 1px solid #4a2e15;
   display: flex;
   align-items: center;
-  background-color: #8d6e63;
+  background: linear-gradient(180deg, #d48e50 0%, #9e5b29 100%);
 }
 
 .plank-texture {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  opacity: 0.3;
+  opacity: 0.8;
   background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(0,0,0,0.6) 8px, rgba(0,0,0,0.6) 9px),
-    linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.2) 100%);
+    repeating-linear-gradient(
+      90deg, 
+      transparent, 
+      transparent 10px, 
+      rgba(0,0,0,0.1) 10px, 
+      rgba(0,0,0,0.1) 12px
+    ),
+    repeating-linear-gradient(
+      100deg, 
+      rgba(255,255,255,0.05), 
+      rgba(255,255,255,0.05) 20px, 
+      transparent 20px, 
+      transparent 40px
+    );
   pointer-events: none;
 }
 
-.blue-bracket {
+.metal-bracket {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
-  border-radius: 8px;
+  background: radial-gradient(circle at 30% 30%, #e0e0e0, #888);
+  border-radius: 50%;
   box-shadow: 
-    inset 0 2px 3px rgba(255,255,255,0.5),
-    inset 0 -3px 6px rgba(0,0,0,0.6),
-    0 4px 6px rgba(0,0,0,0.7);
-  border: 1px solid #0d47a1;
+    0 2px 4px rgba(0,0,0,0.5),
+    inset 0 1px 2px rgba(255,255,255,0.8);
+  border: 1px solid #555;
   pointer-events: none;
 }
-.blue-bracket::after {
+
+.metal-bracket::after {
   content: "";
   position: absolute;
   inset: 6px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.2);
+  background: #111;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
 }
 
 .screw-interactive {
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: 34px;
+  height: 34px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   cursor: pointer;
@@ -134,68 +131,171 @@
 
 .screw-visual {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  left: 14px;
-  top: 14px;
-  background: conic-gradient(from 45deg, #d84315 0%, #ff8a65 15%, #e64a19 30%, #ff8a65 50%, #f4511e 65%, #ff8a65 85%, #d84315 100%);
+  width: 34px;
+  height: 34px;
+  left: 0;
+  top: 0;
+  background: radial-gradient(circle at 30% 30%, #e0e5ec, #788591 60%, #4a5568);
   border-radius: 50%;
   box-shadow: 
-    0 6px 10px rgba(0,0,0,0.7), 
-    inset 0 -2px 6px rgba(0,0,0,0.6), 
-    inset 0 2px 4px rgba(255,255,255,0.7),
-    0 0 0 1px rgba(60,30,0,0.9);
+    0 6px 12px rgba(0,0,0,0.6), 
+    inset 0 -2px 6px rgba(0,0,0,0.5), 
+    inset 0 2px 5px rgba(255,255,255,1),
+    0 0 0 1px #2d3748;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, filter 0.3s;
+}
+
+.screw-interactive:hover .screw-visual {
+  filter: brightness(1.15);
 }
 
 .screw-interactive.selected {
   z-index: 250;
 }
+
 .screw-interactive.selected .screw-visual {
-  transform: scale(1.15) translateY(-8px);
+  transform: scale(1.2) translateY(-10px) rotate(15deg);
   box-shadow: 
-    0 20px 24px rgba(0,0,0,0.8), 
-    inset 0 -2px 6px rgba(0,0,0,0.6), 
-    inset 0 2px 4px rgba(255,255,255,0.9),
-    0 0 0 2px rgba(255,235,59,0.8),
-    0 0 16px rgba(255,235,59,0.5);
+    0 20px 30px rgba(0,0,0,0.8), 
+    inset 0 -2px 6px rgba(0,0,0,0.7), 
+    inset 0 2px 5px rgba(255,255,255,1),
+    0 0 0 2px #00e5ff,
+    0 0 20px rgba(0,229,255,0.8);
 }
 
 .screw-cross {
-  width: 14px;
-  height: 14px;
-  background: 
-    linear-gradient(to right, transparent 38%, rgba(40,15,0,0.9) 45%, rgba(40,15,0,0.9) 55%, transparent 62%),
-    linear-gradient(to bottom, transparent 38%, rgba(40,15,0,0.9) 45%, rgba(40,15,0,0.9) 55%, transparent 62%);
-  border-radius: 1px;
+  position: relative;
+  width: 16px;
+  height: 16px;
   transform: rotate(45deg);
-  box-shadow: inset 0 0 2px rgba(255,255,255,0.3);
 }
 
+.screw-cross::before, .screw-cross::after {
+  content: "";
+  position: absolute;
+  background-color: #1a202c;
+  border-radius: 1px;
+  box-shadow: inset 0 0 3px rgba(255,255,255,0.3);
+}
+
+.screw-cross::before { top: 0; bottom: 0; left: 35%; right: 35%; }
+.screw-cross::after { left: 0; right: 0; top: 35%; bottom: 35%; }
+
+/* Glassmorphism Modals */
 .nc-modal {
-  position: absolute; inset: 0; background: rgba(10, 10, 15, 0.9); z-index: 1000; border-radius: 12px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+  position: absolute; 
+  inset: 0; 
+  background: rgba(20, 20, 30, 0.6); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000; 
+  border-radius: 16px;
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  color: white;
   animation: popIn 0.5s cubic-bezier(0.2, 1, 0.3, 1.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  font-family: 'Inter', sans-serif;
 }
+
 .nc-modal h1 {
-  font-size: 32px; color: #ffca28; margin-bottom: 8px; text-shadow: 0 6px 12px rgba(0,0,0,1); letter-spacing: 2px;
+  font-size: 32px; 
+  color: #fff; 
+  margin-bottom: 8px; 
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.6), 0 0 10px rgba(0, 229, 255, 0.4); 
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 800;
+  text-align: center;
 }
+
 .nc-stars {
-  font-size: 40px; margin-bottom: 24px; animation: starPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-size: 40px; 
+  margin-bottom: 24px; 
+  animation: starPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
-@keyframes starPop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+@keyframes starPop { 
+  0% { transform: scale(0) rotate(-20deg); } 
+  100% { transform: scale(1) rotate(0deg); } 
+}
+
 .nc-modal-stats {
-  font-size: 18px; margin-bottom: 32px; line-height: 1.8; text-align: center; color: #e0e0e0;
+  font-size: 18px; 
+  margin-bottom: 32px; 
+  line-height: 1.8; 
+  text-align: center; 
+  color: #e2e8f0;
 }
+
 .nc-modal-btn {
-  background: linear-gradient(180deg, #66bb6a, #2e7d32); border: 1px solid #1b5e20; color: white;
-  font-weight: 900; padding: 14px 28px; border-radius: 30px; cursor: pointer; font-size: 16px; letter-spacing: 1px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.4); transition: transform 0.15s, filter 0.15s;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); 
+  border: 1px solid rgba(255,255,255,0.2); 
+  color: white;
+  font-weight: 700; 
+  padding: 14px 28px; 
+  border-radius: 30px; 
+  cursor: pointer; 
+  font-size: 16px; 
+  letter-spacing: 1px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3); 
+  transition: all 0.2s cubic-bezier(0.2, 1, 0.3, 1.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-transform: uppercase;
 }
-.nc-modal-btn:hover { filter: brightness(1.2); }
-.nc-modal-btn:active { transform: scale(0.92); }
-@keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+.nc-modal-btn:hover { 
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.4), 0 0 15px rgba(0,229,255,0.3);
+}
+
+.nc-modal-btn:active { transform: scale(0.95); }
+
+.nc-modal-btn.primary {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  border: 1px solid #90e0ef;
+}
+
+.nc-modal-btn.primary:hover {
+  box-shadow: 0 12px 24px rgba(0,0,0,0.4), 0 0 20px rgba(0, 180, 216, 0.6);
+}
+
+@keyframes popIn { 
+  from { opacity: 0; transform: scale(0.9); } 
+  to { opacity: 1; transform: scale(1); } 
+}
+
+/* Particle Effects */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #00e5ff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 300;
+  box-shadow: 0 0 8px #00e5ff, 0 0 4px #fff;
+  animation: particleBurst 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes particleBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
