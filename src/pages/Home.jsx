@@ -44,7 +44,10 @@ export default function Home() {
             animate="visible"
             variants={fadeUp}
           >
-            <span className={styles.heroPreTitle}>PLAY • EARN • REDEEM</span>
+            <span className={styles.heroPreTitle}>
+              <Gamepad2 size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+              PLAY • EARN • REDEEM
+            </span>
             <h1 className={styles.heroTitle}>
               Games
             </h1>
