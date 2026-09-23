@@ -99,21 +99,19 @@ export default function Home() {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
           >
-            {games.map((game, index) => {
-              const isPlayable = game.playable;
-              
-              return (
+            {games.map((game, index) => (
                 <motion.div key={game.id} variants={fadeUp}>
                   <Link 
-                    to={isPlayable ? `/games/${game.slug}` : "#"} 
+                    to={`/games/${game.slug}`} 
                     className={styles.gameCard}
-                    onClick={(e) => { if (!isPlayable) e.preventDefault(); }}
                   >
                     <div className={styles.cardImageWrap}>
                       <img src={game.image} alt={game.name} className={styles.cardImage} />
-                      <div className={`${styles.badgeTop} ${isPlayable ? styles.badgePlayable : styles.badgeComingSoon}`}>
-                        {isPlayable ? 'Playable' : 'Coming Soon'}
-                      </div>
+                      {game.badge && (
+                        <div className={`${styles.badgeTop} ${styles.badgePlayable}`}>
+                          {game.badge}
+                        </div>
+                      )}
                     </div>
                     
                     <div className={styles.cardContent}>
@@ -126,19 +124,15 @@ export default function Home() {
                           <span>{game.cost} Tokens</span>
                         </div>
                         
-                        <div className={`${styles.playBtn} ${!isPlayable ? styles.comingSoonBtn : ''}`}>
-                          {isPlayable ? (
-                            <>Play Now <ArrowRight size={16} /></>
-                          ) : (
-                            'Coming Soon 🕒'
-                          )}
+                        <div className={styles.playBtn}>
+                          Play Now <ArrowRight size={16} />
                         </div>
                       </div>
                     </div>
                   </Link>
                 </motion.div>
-              );
-            })}
+              ))
+            }
           </motion.div>
         </section>
 

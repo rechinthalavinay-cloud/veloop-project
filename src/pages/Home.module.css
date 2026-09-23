@@ -171,9 +171,20 @@
 }
 
 .gamesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  display: flex;
+  overflow-x: auto;
   gap: 24px;
+  padding-bottom: 24px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+}
+.gamesGrid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+}
+.gamesGrid > div {
+  flex: 0 0 auto;
+  width: 340px;
+  scroll-snap-align: start;
 }
 
 /* --- PREMIUM GAME CARD --- */
@@ -347,7 +358,7 @@
 
 @media (max-width: 1024px) {
   .heroTitle { font-size: 3.5rem; }
-  .gamesGrid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .gamesGrid > div { width: 300px; }
   .infoGrid { grid-template-columns: 1fr; gap: 30px; }
   .playMoreText { text-align: left; font-size: 1.1rem; }
 }
@@ -358,7 +369,7 @@
   .walletPill { padding: 8px 16px; }
   .walletVal { font-size: 1rem; }
   .sectionHeader { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .gamesGrid { grid-template-columns: 1fr; }
+  .gamesGrid > div { width: 85vw; }
   .infoCol { flex-direction: column; align-items: flex-start; text-align: left; }
   .infoCol[style] { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
 }

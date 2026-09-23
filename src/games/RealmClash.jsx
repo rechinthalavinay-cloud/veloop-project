@@ -4,7 +4,7 @@ import { GameShell } from "./GameShell";
 const W = 360;
 const H = 520;
 const COLORS = {
-  0: "#555566", // Neutral (Dim Grey/Blue)
+  0: "#707085", // Neutral (Dim Grey/Blue)
   1: "#00f2fe", // Player (Neon Cyan)
   2: "#ff0055"  // Enemy (Neon Pink/Red)
 };
@@ -62,12 +62,13 @@ export function RealmClash({ onOutcome, reviveSignal }) {
   // Pre-generate background stars
   const createStars = () => {
     let stars = [];
-    for(let i = 0; i < 50; i++) {
+    for(let i = 0; i < 80; i++) {
        stars.push({
          x: Math.random() * W,
          y: Math.random() * H,
-         s: Math.random() * 2 + 0.5,
-         speed: Math.random() * 0.5 + 0.1
+         s: Math.random() * 1.5 + 0.5,
+         speed: Math.random() * 0.3 + 0.05,
+         layer: Math.floor(Math.random() * 3) // For parallax
        });
     }
     return stars;
@@ -83,7 +84,8 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       connections: [], // { fromId, toId, team }
       pointer: { active: false, slicing: false, x: 0, y: 0, startNodeId: null },
       winTimer: 0,
-      stars: createStars()
+      stars: createStars(),
+      screenShake: 0
     };
   }
 
@@ -106,7 +108,7 @@ export function RealmClash({ onOutcome, reviveSignal }) {
 
     const getNodeAt = (x, y) => {
       // Larger hit radius for easier touch
-      return s.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= n.r + 20);
+      return s.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= n.r + 25);
     };
 
     const toggleConnection = (fromNode, toNode) => {
@@ -144,7 +146,6 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       const ny = (pt.clientY - rect.top) * (H / rect.height);
       
       if (s.pointer.slicing) {
-         // Thicker slice detection for mobile
          s.connections.forEach(c => {
              const fromN = s.nodes.find(n => n.id === c.fromId);
              const toN = s.nodes.find(n => n.id === c.toId);
@@ -156,7 +157,7 @@ export function RealmClash({ onOutcome, reviveSignal }) {
                      const projX = fromN.x + t * (toN.x - fromN.x);
                      const projY = fromN.y + t * (toN.y - fromN.y);
                      const distSq = (nx - projX)**2 + (ny - projY)**2;
-                     if (distSq < 1200 && c.team === 1) { // 34px slice radius (forgiving)
+                     if (distSq < 1500 && c.team === 1) { // Slice radius
                          c.invalid = true;
                      }
                  }
@@ -198,20 +199,23 @@ export function RealmClash({ onOutcome, reviveSignal }) {
     canvas.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
     
-    // For touch devices specifically
     canvas.addEventListener("touchstart", handleDown, {passive: false});
     canvas.addEventListener("touchmove", handleMove, {passive: false});
 
     const addExplosion = (x, y, color) => {
-        for(let i=0; i<8; i++) {
+        for(let i=0; i<12; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 8 + 2;
             s.explosions.push({
                 x, y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
                 life: 1.0,
-                color
+                color,
+                size: Math.random() * 3 + 2
             });
         }
+        s.screenShake = Math.max(s.screenShake, 3);
     };
     
     const addShockwave = (x, y, color) => {
@@ -222,6 +226,7 @@ export function RealmClash({ onOutcome, reviveSignal }) {
             color,
             isShockwave: true
         });
+        s.screenShake = Math.max(s.screenShake, 8);
     };
 
     let frame;
@@ -230,9 +235,9 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       if (phaseRef.current !== "playing") return;
       s.tick++;
 
-      // Background stars
+      // Background stars parallax
       s.stars.forEach(star => {
-          star.y += star.speed;
+          star.y += star.speed * (star.layer + 1);
           if (star.y > H) {
               star.y = 0;
               star.x = Math.random() * W;
@@ -261,9 +266,11 @@ export function RealmClash({ onOutcome, reviveSignal }) {
          const rate = Math.max(5, Math.floor(120 / Math.max(1, fromNode.troops)));
 
          if (s.tick % rate === 0) {
+            // Track history for trails
             s.troops.push({
                x: fromNode.x,
                y: fromNode.y,
+               history: [],
                team: c.team,
                targetId: c.toId,
                speed: 4.5 + Math.random() * 0.5
@@ -317,7 +324,7 @@ export function RealmClash({ onOutcome, reviveSignal }) {
             if (i !== j) {
                const other = s.troops[j];
                if (t.team !== other.team && !t.dead && !other.dead) {
-                  if (Math.hypot(t.x - other.x, t.y - other.y) < 8) { 
+                  if (Math.hypot(t.x - other.x, t.y - other.y) < 10) { 
                      t.dead = true;
                      other.dead = true;
                      clashed = true;
@@ -354,6 +361,8 @@ export function RealmClash({ onOutcome, reviveSignal }) {
             }
             t.dead = true;
          } else {
+            t.history.unshift({x: t.x, y: t.y});
+            if (t.history.length > 5) t.history.pop();
             t.x += (dx / dist) * t.speed;
             t.y += (dy / dist) * t.speed;
          }
@@ -365,7 +374,9 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       s.explosions.forEach(exp => {
          exp.x += exp.vx;
          exp.y += exp.vy;
-         exp.life -= 0.05; // Fade speed
+         exp.vx *= 0.92; // Friction
+         exp.vy *= 0.92;
+         exp.life -= (exp.isShockwave ? 0.02 : 0.03); // Fade speed
       });
       s.explosions = s.explosions.filter(exp => exp.life > 0);
 
@@ -399,15 +410,39 @@ export function RealmClash({ onOutcome, reviveSignal }) {
          s.winTimer = 0;
       }
 
-
-      // RENDER ── DARK SPACE / NEON THEME
+      // ──────────────────────────────────────────────────────────
+      // RENDER
+      // ──────────────────────────────────────────────────────────
+      
+      ctx.save();
+      // Screen Shake
+      if (s.screenShake > 0) {
+         ctx.translate((Math.random() - 0.5) * s.screenShake, (Math.random() - 0.5) * s.screenShake);
+         s.screenShake *= 0.9;
+         if (s.screenShake < 0.5) s.screenShake = 0;
+      }
       
       // Background (Deep space void)
-      ctx.fillStyle = "#07070a"; 
+      ctx.fillStyle = "#050508"; 
       ctx.fillRect(0, 0, W, H);
       
+      // Nebulas
+      ctx.globalCompositeOperation = "screen";
+      const grd1 = ctx.createRadialGradient(W*0.3, H*0.3, 0, W*0.3, H*0.3, W*0.6);
+      grd1.addColorStop(0, "rgba(0, 242, 254, 0.08)");
+      grd1.addColorStop(1, "transparent");
+      ctx.fillStyle = grd1;
+      ctx.fillRect(0, 0, W, H);
+      
+      const grd2 = ctx.createRadialGradient(W*0.7, H*0.7, 0, W*0.7, H*0.7, W*0.6);
+      grd2.addColorStop(0, "rgba(255, 0, 85, 0.06)");
+      grd2.addColorStop(1, "transparent");
+      ctx.fillStyle = grd2;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "source-over";
+
       // Subtle Grid
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       for(let x = 0; x < W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
@@ -415,8 +450,8 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       ctx.stroke();
 
       // Draw Stars
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       s.stars.forEach(star => {
+         ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + star.layer * 0.2})`;
          ctx.beginPath(); ctx.arc(star.x, star.y, star.s, 0, Math.PI*2); ctx.fill();
       });
       
@@ -430,24 +465,29 @@ export function RealmClash({ onOutcome, reviveSignal }) {
             
             // Core beam
             ctx.strokeStyle = teamColor;
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(fromNode.x, fromNode.y);
             ctx.lineTo(toNode.x, toNode.y);
             ctx.stroke();
 
-            // Glow
+            // Glow 1
             ctx.strokeStyle = teamColor;
-            ctx.lineWidth = 12;
-            ctx.globalAlpha = 0.2;
+            ctx.lineWidth = 8;
+            ctx.globalAlpha = 0.4;
+            ctx.stroke();
+            
+            // Glow 2
+            ctx.lineWidth = 16;
+            ctx.globalAlpha = 0.15;
             ctx.stroke();
             ctx.globalAlpha = 1.0;
 
             // Flow pulses
             ctx.strokeStyle = "#fff";
             ctx.lineWidth = 2;
-            ctx.setLineDash([6, 30]);
-            ctx.lineDashOffset = -s.tick * 2.0; 
+            ctx.setLineDash([8, 24]);
+            ctx.lineDashOffset = -s.tick * 3.0; 
             ctx.beginPath();
             ctx.moveTo(fromNode.x, fromNode.y);
             ctx.lineTo(toNode.x, toNode.y);
@@ -461,7 +501,7 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       if (s.pointer.active && !s.pointer.slicing) {
          const fromNode = s.nodes.find(n => n.id === s.pointer.startNodeId);
          if (fromNode) {
-            ctx.strokeStyle = "rgba(0, 242, 254, 0.5)"; // Player blue
+            ctx.strokeStyle = "rgba(0, 242, 254, 0.7)"; 
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(fromNode.x, fromNode.y);
@@ -473,17 +513,30 @@ export function RealmClash({ onOutcome, reviveSignal }) {
             if (target && target.id !== fromNode.id) {
                ctx.strokeStyle = COLORS[target.team];
                ctx.beginPath();
-               ctx.arc(target.x, target.y, target.r + 10, 0, Math.PI*2);
+               ctx.arc(target.x, target.y, target.r + 12, 0, Math.PI*2);
                ctx.stroke();
             }
          }
       }
 
-      // Draw Troops (Glowing Spaceships/Arrows)
+      // Draw Troops (Glowing Spaceships/Arrows with trails)
       s.troops.forEach(t => {
          const target = s.nodes.find(n => n.id === t.targetId);
          let angle = 0;
          if (target) angle = Math.atan2(target.y - t.y, target.x - t.x);
+         const tColor = COLORS[t.team];
+         
+         // Trail
+         if (t.history.length > 0) {
+             ctx.beginPath();
+             ctx.moveTo(t.x, t.y);
+             t.history.forEach(pt => ctx.lineTo(pt.x, pt.y));
+             ctx.strokeStyle = tColor;
+             ctx.lineWidth = 3;
+             ctx.globalAlpha = 0.4;
+             ctx.stroke();
+             ctx.globalAlpha = 1.0;
+         }
          
          ctx.save();
          ctx.translate(t.x, t.y);
@@ -492,25 +545,28 @@ export function RealmClash({ onOutcome, reviveSignal }) {
          ctx.globalCompositeOperation = "screen";
          
          // Glow
-         ctx.fillStyle = COLORS[t.team];
-         ctx.globalAlpha = 0.4;
+         ctx.fillStyle = tColor;
+         ctx.shadowColor = tColor;
+         ctx.shadowBlur = 10;
+         ctx.globalAlpha = 0.6;
          ctx.beginPath(); ctx.arc(-2, 0, 8, 0, Math.PI*2); ctx.fill();
          ctx.globalAlpha = 1.0;
+         ctx.shadowBlur = 0;
          
          // Arrow shape
          ctx.fillStyle = "#fff";
          ctx.beginPath();
-         ctx.moveTo(6, 0);
-         ctx.lineTo(-6, -4);
+         ctx.moveTo(8, 0);
+         ctx.lineTo(-6, -5);
          ctx.lineTo(-4, 0);
-         ctx.lineTo(-6, 4);
+         ctx.lineTo(-6, 5);
          ctx.closePath();
          ctx.fill();
          
          // Color accent
-         ctx.fillStyle = COLORS[t.team];
+         ctx.fillStyle = tColor;
          ctx.beginPath();
-         ctx.moveTo(2, 0);
+         ctx.moveTo(4, 0);
          ctx.lineTo(-5, -2);
          ctx.lineTo(-3, 0);
          ctx.lineTo(-5, 2);
@@ -525,17 +581,24 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       s.explosions.forEach(exp => {
          if (exp.isShockwave) {
              ctx.strokeStyle = exp.color;
-             ctx.lineWidth = 4 * exp.life;
+             ctx.lineWidth = 6 * exp.life;
+             ctx.shadowColor = exp.color;
+             ctx.shadowBlur = 15;
              ctx.beginPath();
-             ctx.arc(exp.x, exp.y, 40 * (1 - exp.life), 0, Math.PI*2);
+             ctx.arc(exp.x, exp.y, 60 * (1 - exp.life), 0, Math.PI*2);
              ctx.stroke();
+             ctx.shadowBlur = 0;
          } else {
-             ctx.fillStyle = exp.color;
+             // Hot core fading to color
+             ctx.fillStyle = exp.life > 0.6 ? "#fff" : exp.color;
              ctx.globalAlpha = exp.life;
+             ctx.shadowColor = exp.color;
+             ctx.shadowBlur = 8;
              ctx.beginPath();
-             ctx.arc(exp.x, exp.y, 4, 0, Math.PI*2);
+             ctx.arc(exp.x, exp.y, exp.size * exp.life, 0, Math.PI*2);
              ctx.fill();
              ctx.globalAlpha = 1.0;
+             ctx.shadowBlur = 0;
          }
       });
       ctx.globalCompositeOperation = "source-over";
@@ -544,15 +607,18 @@ export function RealmClash({ onOutcome, reviveSignal }) {
       if (s.slashTrail && s.slashTrail.length > 0) {
           ctx.beginPath();
           ctx.strokeStyle = "#fff";
-          ctx.lineWidth = 6;
+          ctx.lineWidth = 4;
           ctx.lineCap = "round";
           ctx.moveTo(s.slashTrail[0].x, s.slashTrail[0].y);
           s.slashTrail.forEach(pt => ctx.lineTo(pt.x, pt.y));
           ctx.stroke();
           
           ctx.strokeStyle = "rgba(0, 242, 254, 0.5)";
-          ctx.lineWidth = 14;
+          ctx.lineWidth = 12;
+          ctx.shadowColor = "#00f2fe";
+          ctx.shadowBlur = 15;
           ctx.stroke();
+          ctx.shadowBlur = 0;
           
           s.slashTrail.forEach(pt => pt.age -= 0.15);
           s.slashTrail = s.slashTrail.filter(pt => pt.age > 0);
@@ -566,49 +632,70 @@ export function RealmClash({ onOutcome, reviveSignal }) {
          ctx.translate(n.x, n.y);
          
          // Outer pulse glow
-         const pulse = Math.sin(s.tick * 0.1) * 2;
+         const pulse = Math.sin(s.tick * 0.1) * 3;
          ctx.fillStyle = tColor;
-         ctx.globalAlpha = 0.2;
-         ctx.beginPath(); ctx.arc(0, 0, n.r + 6 + pulse, 0, Math.PI*2); ctx.fill();
+         ctx.globalAlpha = 0.15;
+         ctx.beginPath(); ctx.arc(0, 0, n.r + 8 + pulse, 0, Math.PI*2); ctx.fill();
          ctx.globalAlpha = 1.0;
          
          // Rotating outer ring
-         ctx.rotate(s.tick * 0.02 * (n.team === 1 ? 1 : -1));
+         ctx.rotate(s.tick * 0.03 * (n.team === 1 ? 1 : -1));
          ctx.strokeStyle = tColor;
          ctx.lineWidth = 3;
-         ctx.beginPath(); ctx.arc(0, 0, n.r, 0, Math.PI * 1.5); ctx.stroke();
+         ctx.shadowColor = tColor;
+         ctx.shadowBlur = 10;
+         ctx.beginPath(); ctx.arc(0, 0, n.r, 0, Math.PI * 1.6); ctx.stroke();
+         ctx.shadowBlur = 0;
          
-         ctx.rotate(-s.tick * 0.02 * (n.team === 1 ? 1 : -1)); // reset rot
+         ctx.rotate(-s.tick * 0.03 * (n.team === 1 ? 1 : -1)); // reset rot
          
-         // Inner Core
-         ctx.fillStyle = "#101016"; // Dark glass center
+         // Inner Core Background
+         ctx.fillStyle = "#0c0c14"; 
          ctx.beginPath(); ctx.arc(0, 0, n.r - 4, 0, Math.PI*2); ctx.fill();
          
-         // Fill level indicator
-         const fillRatio = n.troops / n.max;
+         // Fill level indicator (Smooth clipping)
+         const fillRatio = Math.max(0.05, n.troops / n.max);
+         ctx.save();
+         ctx.beginPath(); ctx.arc(0, 0, n.r - 4, 0, Math.PI*2); ctx.clip();
+         
          ctx.fillStyle = tColor;
-         ctx.globalAlpha = 0.15;
-         ctx.beginPath(); ctx.arc(0, 0, n.r - 4, 0, Math.PI*2); ctx.fill();
+         ctx.globalAlpha = 0.2;
+         ctx.fillRect(-n.r, -n.r, n.r*2, n.r*2); // dim background fill
          
-         // Base solid core
-         ctx.globalAlpha = 0.4;
-         ctx.beginPath(); ctx.arc(0, 0, (n.r - 4) * Math.max(0.2, fillRatio), 0, Math.PI*2); ctx.fill();
-         ctx.globalAlpha = 1.0;
+         ctx.globalAlpha = 0.6;
+         // Draw wave for fill level
+         const waveH = n.r * 2 * fillRatio;
+         const waveY = (n.r - 4) - waveH;
+         ctx.beginPath();
+         ctx.moveTo(-n.r, waveY);
+         for (let wx = -n.r; wx < n.r; wx += 5) {
+             ctx.lineTo(wx, waveY + Math.sin(wx * 0.1 + s.tick * 0.1) * 3);
+         }
+         ctx.lineTo(n.r, n.r);
+         ctx.lineTo(-n.r, n.r);
+         ctx.fill();
+         
+         ctx.restore(); // end clip
+
+         // Core border
+         ctx.strokeStyle = "rgba(255,255,255,0.1)";
+         ctx.lineWidth = 1;
+         ctx.beginPath(); ctx.arc(0, 0, n.r - 4, 0, Math.PI*2); ctx.stroke();
 
          // Text (Troop Count)
-         ctx.fillStyle = "#fff";
-         ctx.font = "800 16px 'Plus Jakarta Sans', sans-serif";
+         ctx.fillStyle = "#ffffff";
+         ctx.font = "800 18px 'Plus Jakarta Sans', sans-serif";
          ctx.textAlign = "center";
          ctx.textBaseline = "middle";
-         // Drop shadow for text
          ctx.shadowColor = tColor;
-         ctx.shadowBlur = 8;
+         ctx.shadowBlur = 12;
          ctx.fillText(n.troops.toString(), 0, 0);
          ctx.shadowBlur = 0; // reset
          
          ctx.restore();
       });
 
+      ctx.restore(); // End global save for screen shake
     };
     frame = requestAnimationFrame(loop);
 
@@ -642,40 +729,42 @@ export function RealmClash({ onOutcome, reviveSignal }) {
         margin: "0 auto",
         width: "100%",
         maxWidth: "min(420px, calc(80vh * 360 / 520))",
-        background: "rgba(10, 10, 15, 0.6)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderRadius: "28px",
+        background: "rgba(15, 15, 25, 0.7)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderRadius: "32px",
         overflow: "hidden",
-        border: "1px solid rgba(139, 92, 246, 0.2)",
-        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.1)",
-        padding: "8px"
+        border: "1px solid rgba(0, 242, 254, 0.15)",
+        boxShadow: "0 24px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 242, 254, 0.1) inset",
+        padding: "10px"
       }}>
         <div style={{
-          borderRadius: "20px",
+          borderRadius: "24px",
           overflow: "hidden",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
-          backgroundColor: "#07070a",
-          boxShadow: "inset 0 0 40px rgba(0, 242, 254, 0.05)"
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          backgroundColor: "#050508",
+          boxShadow: "inset 0 0 60px rgba(0, 0, 0, 0.5)"
         }}>
           <canvas ref={canvasRef}
             style={{ 
               width: "100%", 
               aspectRatio: "360 / 520",
               display: "block", 
-              touchAction: "none"
+              touchAction: "none",
+              filter: "contrast(1.1) brightness(1.1)"
             }} />
         </div>
       </div>
       <p style={{ 
-        color: "rgba(255,255,255,0.5)", 
-        fontSize: "0.85rem", 
-        fontWeight: "500",
+        color: "rgba(255,255,255,0.7)", 
+        fontSize: "0.9rem", 
+        fontWeight: "600",
         textAlign: "center", 
-        padding: "16px 0 8px", 
-        margin: 0
+        padding: "20px 0 10px", 
+        margin: 0,
+        textShadow: "0 2px 4px rgba(0,0,0,0.5)"
       }}>
-        Drag to link cores. Swipe across links to sever them.
+        Drag to link cores. Swipe to sever links.
       </p>
     </GameShell>
   );
