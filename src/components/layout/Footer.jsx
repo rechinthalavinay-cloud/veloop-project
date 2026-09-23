@@ -4,7 +4,7 @@ import styles from "./Footer.module.css";
 export default function Footer() {
   return (
     <footer className={styles.footer}>
-      <div className="page-wrap">
+      <div className={styles.footerContainer}>
         <div className={styles.footerGrid}>
           
           <div className={styles.brandCol}>
@@ -48,10 +48,10 @@ export default function Footer() {
 
         <div className={styles.footerBottom}>
           <div className={styles.copyright}>
-            &copy; 2026 VELOOP Rewards. All rights reserved.
+            &copy; {new Date().getFullYear()} VELOOP Rewards. All rights reserved.
           </div>
           <div className={styles.prototype}>
-            Frontend Prototype for Demonstration
+            Premium Gaming Platform
           </div>
         </div>
       </div>

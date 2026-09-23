@@ -54,6 +54,11 @@ export default function Home() {
             <p className={styles.heroSubtitle}>
               Explore exciting games, complete challenges, and earn amazing rewards.
             </p>
+            <div style={{ marginTop: '32px' }}>
+              <a href="#games" className={styles.heroCtaBtn}>
+                Explore Games
+              </a>
+            </div>
           </motion.div>
         </section>
 

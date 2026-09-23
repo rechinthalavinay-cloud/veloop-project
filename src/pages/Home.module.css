@@ -33,7 +33,7 @@
 .heroSection {
   position: relative;
   z-index: 1;
-  padding: 100px 20px 60px;
+  padding: 80px 24px 60px;
   text-align: center;
   background: linear-gradient(180deg, rgba(11, 12, 16, 0.4) 0%, #0b0c10 100%),
               url('/hero-bg.jpg') center/cover no-repeat;
@@ -46,8 +46,8 @@
 .heroPreTitle {
   display: inline-block;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   font-size: 0.85rem;
   letter-spacing: 2px;
@@ -57,7 +57,7 @@
   color: #a0a5b5;
 }
 .heroTitle {
-  font-size: 5rem;
+  font-size: 4.5rem;
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: 24px;
@@ -70,12 +70,27 @@
   filter: drop-shadow(0 0 10px rgba(164, 80, 255, 0.5));
 }
 .heroSubtitle {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   color: #a0a5b5;
-  margin-bottom: 40px;
-  max-width: 600px;
-  margin-inline: auto;
+  max-width: 540px;
+  margin: 0 auto;
   line-height: 1.6;
+}
+.heroCtaBtn {
+  display: inline-block;
+  background: linear-gradient(90deg, #7209b7, #b5179e);
+  color: white;
+  padding: 16px 36px;
+  border-radius: 100px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 8px 24px rgba(181, 23, 158, 0.4);
+}
+.heroCtaBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(181, 23, 158, 0.6);
 }
 
 /* --- WALLET HEADER (Streamlined) --- */
@@ -129,8 +144,8 @@
 .gamesSection {
   position: relative;
   z-index: 1;
-  padding: 80px 20px;
-  max-width: 1400px;
+  padding: 80px 24px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 .sectionHeader {
@@ -155,14 +170,15 @@
 }
 .sectionTitleBox h2 {
   font-size: 2rem;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 .sectionTitleBox p {
   color: #a0a5b5;
   margin: 0;
+  font-size: 0.95rem;
 }
 .gamesCount {
-  padding: 8px 16px;
+  padding: 6px 16px;
   background: rgba(255,255,255,0.05);
   border-radius: 20px;
   font-size: 0.85rem;
@@ -171,20 +187,9 @@
 }
 
 .gamesGrid {
-  display: flex;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  padding-bottom: 24px;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none; /* Firefox */
-}
-.gamesGrid::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Edge */
-}
-.gamesGrid > div {
-  flex: 0 0 auto;
-  width: 340px;
-  scroll-snap-align: start;
 }
 
 /* --- PREMIUM GAME CARD --- */
@@ -194,17 +199,26 @@
   border-radius: 20px;
   overflow: hidden;
   position: relative;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   display: flex;
   flex-direction: column;
   text-decoration: none;
 }
-.gameCard:hover {
-  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-8px) scale(1.03);
-  border-color: rgba(114, 9, 183, 0.8);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(114, 9, 183, 0.4), inset 0 0 20px rgba(114, 9, 183, 0.1);
+/* Touch interaction overrides */
+@media (hover: hover) and (pointer: fine) {
+  .gameCard:hover {
+    transform: translateY(-6px);
+    border-color: rgba(181, 23, 158, 0.4);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6), inset 0 0 15px rgba(181, 23, 158, 0.1);
+  }
+  .gameCard:hover .cardImage {
+    transform: scale(1.05);
+  }
+  .gameCard:hover .playBtn {
+    filter: brightness(1.2);
+  }
 }
+
 .cardImageWrap {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -215,15 +229,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
-}
-.gameCard:hover .cardImage {
-  transform: scale(1.08);
+  transition: transform 0.4s ease;
 }
 .badgeTop {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 12px;
+  left: 12px;
   padding: 6px 12px;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
@@ -234,17 +245,13 @@
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-.badgeComingSoon {
-  background: rgba(255, 255, 255, 0.1);
-  color: #a0a5b5;
-}
 .badgePlayable {
   background: linear-gradient(90deg, #7209b7, #4361ee);
   color: white;
 }
 
 .cardContent {
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -257,7 +264,7 @@
   margin-bottom: 8px;
 }
 .cardTitle {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0 0 16px 0;
   color: #fff;
@@ -275,38 +282,33 @@
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  color: #f5c542;
+  color: #fca311;
+  font-size: 0.9rem;
 }
 .tokenCost img {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 .playBtn {
   background: linear-gradient(90deg, #7209b7, #b5179e);
   color: white;
   border: none;
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: filter 0.3s ease;
   cursor: pointer;
 }
-.gameCard:hover .playBtn {
-  filter: brightness(1.2);
-}
-.comingSoonBtn {
-  background: rgba(255,255,255,0.1);
-  color: #a0a5b5;
-}
 
 /* --- INFO FOOTER --- */
 .infoFooter {
-  max-width: 1400px;
-  margin: 0 auto 60px;
-  padding: 0 20px;
+  max-width: 1440px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
   position: relative;
   z-index: 1;
 }
@@ -317,7 +319,7 @@
   background: rgba(20, 22, 30, 0.6);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 20px;
-  padding: 30px;
+  padding: 32px;
   align-items: center;
 }
 .infoCol {
@@ -346,7 +348,7 @@
 }
 .playMoreText {
   text-align: right;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 .playMoreText span {
@@ -356,20 +358,35 @@
   -webkit-text-fill-color: transparent;
 }
 
-@media (max-width: 1024px) {
-  .heroTitle { font-size: 3.5rem; }
-  .gamesGrid > div { width: 300px; }
-  .infoGrid { grid-template-columns: 1fr; gap: 30px; }
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 1200px) {
+  .heroTitle { font-size: 4rem; }
+  .gamesGrid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .infoGrid { grid-template-columns: 1fr; gap: 32px; }
   .playMoreText { text-align: left; font-size: 1.1rem; }
 }
+
+@media (max-width: 900px) {
+  .gamesGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 768px) {
   .heroSection { padding: 60px 16px 40px; }
   .heroTitle { font-size: 3rem; }
-  .walletHeader { flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: -20px; }
+  .heroSubtitle { font-size: 1rem; }
+  .heroPreTitle { font-size: 0.75rem; margin-bottom: 16px; }
+  .walletHeader { flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: -20px; padding: 0 16px; }
   .walletPill { padding: 8px 16px; }
   .walletVal { font-size: 1rem; }
   .sectionHeader { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .gamesGrid > div { width: 85vw; }
+  .gamesSection { padding: 60px 16px; }
+  .infoFooter { padding: 0 16px; margin-bottom: 60px; }
+  .infoGrid { padding: 24px; }
   .infoCol { flex-direction: column; align-items: flex-start; text-align: left; }
-  .infoCol[style] { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .infoCol[style] { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+}
+
+@media (max-width: 480px) {
+  .gamesGrid { grid-template-columns: 1fr; gap: 16px; }
+  .heroTitle { font-size: 2.5rem; }
 }

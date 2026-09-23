@@ -1,8 +1,14 @@
 .footer {
-  background: var(--bg-surface);
-  border-top: var(--border-subtle);
-  padding: 60px 0 40px;
-  margin-top: 60px;
+  background: #07070a;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 80px 0 40px;
+}
+
+.footerContainer {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 .footerGrid {
@@ -17,10 +23,10 @@
 }
 
 .logo {
-  font-family: var(--font-heading);
+  font-family: var(--font-heading, "Inter", sans-serif);
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #fff;
   letter-spacing: -0.5px;
   margin-bottom: 16px;
   display: flex;
@@ -29,47 +35,48 @@
 }
 
 .logo span {
-  color: var(--color-purple);
+  color: #b5179e;
   font-weight: 600;
 }
 
 .description {
-  color: var(--text-secondary);
+  color: #a0a5b5;
   font-size: 0.95rem;
   line-height: 1.6;
-  max-width: 300px;
+  max-width: 320px;
   margin: 0;
 }
 
 .colTitle {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 20px;
+  font-family: var(--font-heading, "Inter", sans-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 24px;
 }
 
 .linksList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .linksList a {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: #a0a5b5;
+  font-size: 0.95rem;
   transition: color 0.2s ease;
+  text-decoration: none;
 }
 
 .linksList a:hover {
-  color: var(--color-purple);
+  color: #fff;
 }
 
 .footerBottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 24px;
+  padding-top: 32px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -79,10 +86,10 @@
 }
 
 .prototype {
-  color: #555;
-  font-size: 0.8rem;
+  color: #666;
+  font-size: 0.85rem;
   background: rgba(255, 255, 255, 0.05);
-  padding: 4px 12px;
+  padding: 6px 16px;
   border-radius: 100px;
 }
 
@@ -100,9 +107,14 @@
 }
 
 @media (max-width: 768px) {
+  .footer {
+    padding: 60px 0 32px;
+  }
+  
   .footerGrid {
     grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    gap: 40px;
+    margin-bottom: 40px;
   }
   
   .brandCol {
@@ -112,13 +124,15 @@
   .footerBottom {
     flex-direction: column;
     gap: 16px;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
   }
 }
 
 @media (max-width: 480px) {
   .footerGrid {
     grid-template-columns: 1fr;
+    gap: 32px;
   }
   
   .brandCol {

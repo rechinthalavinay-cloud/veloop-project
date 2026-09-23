@@ -37,62 +37,6 @@ export default function Navbar() {
           VELOOP<span>Rewards</span>
         </Link>
 
-        {/* Navigation Links */}
-        <nav className={`${styles.navLinks} ${open ? styles.mobileOpen : ""}`}>
-          {links.map((link) => {
-            const isActive = location.pathname === link.to || (link.to === "/#games" && location.hash === "#games");
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`${styles.navLink} ${isActive ? styles.activeLink : ""}`}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Dashboard Controls (Right Side) */}
-        <div className={styles.controls}>
-          {/* Cheat Button styled as a clean dashboard control */}
-          <button 
-            type="button"
-            className={styles.cheatBtn}
-            onClick={handleCheat}
-            title="Add 500 Tokens"
-          >
-            <Plus size={14} /> 500 T
-          </button>
-
-          <div className={styles.balanceGroup}>
-            <div className={styles.balanceItem} title="Tokens">
-              <img src={tokenIcon} alt="Tokens" />
-              <span>{wallet.tokens}</span>
-            </div>
-            <div className={styles.balanceItem} title="Game Coins">
-              <img src={coinIcon} alt="Coins" />
-              <span>{wallet.gameCoins}</span>
-            </div>
-            <div className={styles.balanceItem} title="Gems">
-              <img src={gemIcon} alt="Gems" />
-              <span>{wallet.gems}</span>
-            </div>
-            <div className={styles.balanceItem} title="Spins">
-              <img src={spinIcon} alt="Spins" />
-              <span>{wallet.spins}</span>
-            </div>
-          </div>
-
-          {user ? (
-            <button type="button" className={styles.profileBtn} onClick={logout} title="Sign Out">
-              <User size={16} />
-              <span className={styles.profileName}>{user.name.split(" ")[0]}</span>
-            </button>
-          ) : null}
-        </div>
-
         {/* Mobile Menu Toggle */}
         <button
           className={styles.menuToggle}
@@ -101,6 +45,62 @@ export default function Navbar() {
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
+
+        {/* Navigation & Controls Wrapper */}
+        <div className={`${styles.navWrapper} ${open ? styles.mobileOpen : ""}`}>
+          <nav className={styles.navLinks}>
+            {links.map((link) => {
+              const isActive = location.pathname === link.to || (link.to === "/#games" && location.hash === "#games");
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`${styles.navLink} ${isActive ? styles.activeLink : ""}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className={styles.controls}>
+            <button 
+              type="button"
+              className={styles.cheatBtn}
+              onClick={handleCheat}
+              title="Add 500 Tokens"
+            >
+              <Plus size={14} /> 500 T
+            </button>
+
+            <div className={styles.balanceGroup}>
+              <div className={styles.balanceItem} title="Tokens">
+                <img src={tokenIcon} alt="Tokens" />
+                <span>{wallet.tokens}</span>
+              </div>
+              <div className={styles.balanceItem} title="Game Coins">
+                <img src={coinIcon} alt="Coins" />
+                <span>{wallet.gameCoins}</span>
+              </div>
+              <div className={styles.balanceItem} title="Gems">
+                <img src={gemIcon} alt="Gems" />
+                <span>{wallet.gems}</span>
+              </div>
+              <div className={styles.balanceItem} title="Spins">
+                <img src={spinIcon} alt="Spins" />
+                <span>{wallet.spins}</span>
+              </div>
+            </div>
+
+            {user ? (
+              <button type="button" className={styles.profileBtn} onClick={() => { logout(); setOpen(false); }} title="Sign Out">
+                <User size={16} />
+                <span className={styles.profileName}>{user.name.split(" ")[0]}</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </header>
   );
