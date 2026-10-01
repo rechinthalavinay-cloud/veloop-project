@@ -766,7 +766,7 @@ export default function BladeMaster({
 
         <div className="mountain mountain-right" />
 
-        {Array.from(
+        {React.useMemo(() => Array.from(
           {
             length: 14,
           },
@@ -775,14 +775,12 @@ export default function BladeMaster({
               key={index}
               className="ember"
               style={{
-                left:
-                  `${Math.random() * 100}%`,
-                animationDelay:
-                  `${Math.random() * 5}s`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
               }}
             />
           )
-        )}
+        ), [])}
       </div>
 
       {!embedded && (

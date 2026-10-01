@@ -1,0 +1,260 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #030305;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 120px 40px 60px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(to right, #fff, #a881ff);
+  -webkit-background-clip: text;
+  color: transparent;
+  letter-spacing: -1px;
+}
+
+.header p {
+  font-size: 1.1rem;
+  color: #a3a3a3;
+  margin: 0;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  margin-bottom: 60px;
+}
+
+/* Refer Card */
+.referCard {
+  position: relative;
+  background: rgba(20, 20, 25, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 40px;
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 20px 40px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.cardGlow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15), transparent 50%);
+  pointer-events: none;
+}
+
+.referCard h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.referDesc {
+  color: #888;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.referDesc strong {
+  color: #fff;
+}
+
+.linkBox {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 8px 8px 20px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.linkText {
+  flex: 1;
+  color: #a881ff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 16px;
+}
+
+.copyBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copyBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+}
+
+.copyBtn.copied {
+  background: #22c55e;
+  color: #fff;
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4a9ff;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.shareBtn:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* Stats */
+.statsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.statBox {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.statBox h3 {
+  font-size: 0.9rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 12px;
+}
+
+.statValue {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.statSub {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* How It Works */
+.howItWorks {
+  margin-top: 40px;
+}
+
+.howItWorks h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.step {
+  text-align: center;
+}
+
+.stepIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #c4a9ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 auto 20px;
+}
+
+.step h3 {
+  font-size: 1.2rem;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.step p {
+  color: #888;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}

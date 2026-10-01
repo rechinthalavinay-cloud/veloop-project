@@ -12,6 +12,7 @@ const links = [
   { to: "/rewards", label: "Rewards" },
   { to: "/redeem", label: "Redeem" },
   { to: "/withdraw", label: "Withdraw" },
+  { to: "/refer", label: "Refer & Earn" },
 ];
 
 export default function Navbar() {

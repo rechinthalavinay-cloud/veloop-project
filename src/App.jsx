@@ -7,6 +7,7 @@ import GameHome from "./pages/GameHome";
 import Redeem from "./pages/Redeem";
 import Rewards from "./pages/Rewards";
 import Withdraw from "./pages/Withdraw";
+import ReferEarn from "./pages/ReferEarn";
 
 const GamePlay = lazy(() => import("./pages/GamePlay"));
 
@@ -72,6 +73,14 @@ export default function App() {
           element={
             <Protected>
               <Withdraw />
+            </Protected>
+          }
+        />
+        <Route
+          path="/refer"
+          element={
+            <Protected>
+              <ReferEarn />
             </Protected>
           }
         />

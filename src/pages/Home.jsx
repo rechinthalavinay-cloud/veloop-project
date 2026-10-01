@@ -1,6 +1,7 @@
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
 import { coinIcon, tokensIcon } from "../assets/icons";
 import { games } from "../data/gamesData";
@@ -11,6 +12,16 @@ import styles from "./Home.module.css";
 export default function Home() {
   const { wallet } = useWallet();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === "#games") {
+      const el = document.getElementById("games");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    } else if (!location.hash) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location]);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },

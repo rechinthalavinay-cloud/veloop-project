@@ -5,7 +5,7 @@ import styles from "./GameNavigation.module.css";
 export default function GameNavigation({ gameSlug }) {
   return (
     <nav className={styles.nav} aria-label="Game">
-      <Link to={`/games/${gameSlug}`}>
+      <Link to="/">
         <Home size={18} />
         Home
       </Link>

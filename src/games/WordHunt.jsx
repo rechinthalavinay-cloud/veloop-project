@@ -223,46 +223,76 @@ export function WordHunt({ onOutcome, reviveSignal }) {
     const loop = () => {
       frame = requestAnimationFrame(loop);
       
-      ctx.fillStyle = "#ffffff";
+      // Realistic paper background
+      const paperGrad = ctx.createLinearGradient(0, 0, W, H);
+      paperGrad.addColorStop(0, "#fdfbf7");
+      paperGrad.addColorStop(0.5, "#f4f1ea");
+      paperGrad.addColorStop(1, "#eae6dc");
+      ctx.fillStyle = paperGrad;
       ctx.fillRect(0, 0, W, H);
 
-      const cellSize = W / s.size;
-      const radius = cellSize * 0.4;
+      // Subtle paper grain/noise (simulated with random dots)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.03)";
+      for(let i=0; i<400; i++) {
+        ctx.fillRect(Math.random()*W, Math.random()*H, 1.5, 1.5);
+      }
 
-      // Draw found pills
+      const cellSize = W / s.size;
+      const radius = cellSize * 0.35;
+
+      // Draw found pills (Realistic Highlighters)
       ctx.lineCap = "round";
-      ctx.lineWidth = radius * 2;
+      ctx.lineJoin = "round";
+      ctx.lineWidth = radius * 2.2;
+      ctx.globalCompositeOperation = "multiply"; // Marker effect
       s.found.forEach(f => {
         const start = f.cells[0];
         const end = f.cells[f.cells.length - 1];
+        
         ctx.strokeStyle = f.color;
         ctx.beginPath();
         ctx.moveTo(start.c * cellSize + cellSize / 2, start.r * cellSize + cellSize / 2);
-        ctx.lineTo(end.c * cellSize + cellSize / 2, end.r * cellSize + cellSize / 2);
+        
+        // Add slight wobble to marker line for realism
+        const dr = (end.c - start.c) * cellSize;
+        const dc = (end.r - start.r) * cellSize;
+        const len = Math.hypot(dr, dc);
+        if (len > 0) {
+            ctx.lineTo(end.c * cellSize + cellSize / 2, end.r * cellSize + cellSize / 2);
+        } else {
+            ctx.lineTo(start.c * cellSize + cellSize / 2 + 0.1, start.r * cellSize + cellSize / 2 + 0.1);
+        }
         ctx.stroke();
       });
+      ctx.globalCompositeOperation = "source-over";
 
-      // Draw current drag pill
+      // Draw current drag pill (Pencil/Pen outline)
       if (s.dragStart && s.dragCurrent) {
         const line = getLine(s.dragStart, s.dragCurrent);
         if (line) {
           const end = line[line.length - 1];
-          ctx.strokeStyle = "rgba(100, 100, 100, 0.3)"; // grey transparent for active drag
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.4)"; 
+          ctx.lineWidth = 3;
+          ctx.setLineDash([6, 6]);
           ctx.beginPath();
           ctx.moveTo(s.dragStart.c * cellSize + cellSize / 2, s.dragStart.r * cellSize + cellSize / 2);
           ctx.lineTo(end.c * cellSize + cellSize / 2, end.r * cellSize + cellSize / 2);
           ctx.stroke();
+          ctx.setLineDash([]);
         }
       }
 
-      // Draw letters
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 20px 'Courier New', monospace";
+      // Draw letters (Newspaper print style)
+      ctx.fillStyle = "#2c2c2c"; // Off-black ink
+      ctx.font = "bold 22px 'Georgia', serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (let r = 0; r < s.size; r++) {
         for (let c = 0; c < s.size; c++) {
-          ctx.fillText(s.grid[r][c], c * cellSize + cellSize / 2, r * cellSize + cellSize / 2 + 2);
+          // Slight random offset for letter press imperfection
+          const ox = (r * 7 + c * 13) % 2 === 0 ? 0.5 : -0.5;
+          const oy = (r * 11 + c * 5) % 2 === 0 ? 0.5 : -0.5;
+          ctx.fillText(s.grid[r][c], c * cellSize + cellSize / 2 + ox, r * cellSize + cellSize / 2 + 2 + oy);
         }
       }
     };

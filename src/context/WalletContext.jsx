@@ -19,6 +19,9 @@ const defaultWallet = {
   withdrawals: [],
   claimedSessions: {},
   seenGuides: {},
+  referrals: 0,
+  referralTokens: 0,
+  pendingTokens: 0,
 };
 
 const loadWallet = () => {
