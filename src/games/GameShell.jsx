@@ -50,33 +50,6 @@ export function GameShell({
         </div>
       )}
 
-      {/* ── Game Over overlay ── */}
-      {phase === "over" && (
-        <div className={styles.overlay}>
-          <div className={styles.card}>
-            <div className={styles.resultIcon}>✕</div>
-            <p className={styles.cardLabel}>GAME OVER</p>
-            <h2 className={styles.cardTitle}>{title}</h2>
-            <div className={styles.finalScore}>{score}</div>
-            <p className={styles.cardSub}>Final Score</p>
-            <button className={styles.primaryBtn} onClick={onRestart}>↺ Play Again</button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Win overlay ── */}
-      {phase === "complete" && (
-        <div className={styles.overlay}>
-          <div className={`${styles.card} ${styles.winCard}`}>
-            <div className={`${styles.resultIcon} ${styles.winIcon}`}>✓</div>
-            <p className={styles.cardLabel}>COMPLETE!</p>
-            <h2 className={styles.cardTitle}>{title}</h2>
-            <div className={styles.finalScore}>{score}</div>
-            <p className={styles.cardSub}>Final Score</p>
-            <button className={styles.primaryBtn} onClick={onRestart}>↺ Play Again</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

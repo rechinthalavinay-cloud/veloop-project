@@ -296,16 +296,7 @@ export const redeemOffers = [
     rewardLabel: "VEs",
     icon: vesStackIcon,
   },
-  {
-    id: "sves",
-    title: "SVEs",
-    subtitle: "Convert to Silver VEs",
-    cost: 100,
-    reward: 8,
-    rewardKey: "sves",
-    rewardLabel: "SVEs",
-    icon: svesStackIcon,
-  },
+
   {
     id: "coins_to_tokens",
     title: "Tokens",

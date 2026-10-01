@@ -72,7 +72,7 @@ export default function SpinWheel() {
       
       <main className={styles.mainContent}>
         <div className={styles.header}>
-          <h1>Lucky Spin</h1>
+          <h1>Spin</h1>
           <p>Spin the wheel for a chance to win Tokens, Game Coins, and Gems!</p>
           <div className={styles.spinsBadge}>
             You have <strong>{wallet.spins}</strong> Spins left

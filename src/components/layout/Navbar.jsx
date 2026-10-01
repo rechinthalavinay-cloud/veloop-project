@@ -3,13 +3,13 @@ import { Menu, X, User, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useWallet } from "../../context/WalletContext";
 import { useAuth } from "../../context/AuthContext";
-import { tokenIcon, coinIcon, gemIcon, spinIcon } from "../../assets/icons";
+import { tokenIcon, coinIcon, gemIcon, spinIcon, vesIcon } from "../../assets/icons";
 import styles from "./Navbar.module.css";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/#games", label: "Games" },
-  { to: "/spin", label: "Lucky Spin" },
+  { to: "/spin", label: "Spin" },
   { to: "/rewards", label: "Rewards" },
   { to: "/redeem", label: "Redeem" },
   { to: "/withdraw", label: "Withdraw" },
@@ -20,16 +20,8 @@ export default function Navbar() {
   const { wallet } = useWallet();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
-
-  const handleCheat = () => {
-    let w = JSON.parse(localStorage.getItem('veloop-wallet-v1'));
-    if (w) {
-      w.tokens += 500;
-      localStorage.setItem('veloop-wallet-v1', JSON.stringify(w));
-      window.location.reload();
-    }
-  };
 
   return (
     <header className={styles.navbar}>
@@ -67,15 +59,6 @@ export default function Navbar() {
           </nav>
 
           <div className={styles.controls}>
-            <button 
-              type="button"
-              className={styles.cheatBtn}
-              onClick={handleCheat}
-              title="Add 500 Tokens"
-            >
-              <Plus size={14} /> 500 T
-            </button>
-
             <div className={styles.balanceGroup}>
               <div className={styles.balanceItem} title="Tokens">
                 <img src={tokenIcon} alt="Tokens" />
@@ -84,6 +67,10 @@ export default function Navbar() {
               <div className={styles.balanceItem} title="Game Coins">
                 <img src={coinIcon} alt="Coins" />
                 <span>{wallet.gameCoins}</span>
+              </div>
+              <div className={styles.balanceItem} title="VEs">
+                <img src={vesIcon} alt="VEs" />
+                <span>{wallet.ves}</span>
               </div>
               <div className={styles.balanceItem} title="Gems">
                 <img src={gemIcon} alt="Gems" />
@@ -96,10 +83,39 @@ export default function Navbar() {
             </div>
 
             {user ? (
-              <button type="button" className={styles.profileBtn} onClick={() => { logout(); setOpen(false); }} title="Sign Out">
-                <User size={16} />
-                <span className={styles.profileName}>{user.name.split(" ")[0]}</span>
-              </button>
+              <div className={styles.profileWrapper}>
+                <button 
+                  type="button" 
+                  className={styles.profileBtn} 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)} 
+                  title="Profile Menu"
+                >
+                  <User size={16} />
+                </button>
+
+                {showProfileMenu && (
+                  <div className={styles.profileDropdown}>
+                    <div className={styles.profileHeader}>
+                      <User size={20} className={styles.profileAvatar} />
+                      <div className={styles.profileInfo}>
+                        <span className={styles.profileName}>{user.name}</span>
+                        <span className={styles.profileEmail}>{user.email}</span>
+                      </div>
+                    </div>
+                    <div className={styles.dropdownDivider}></div>
+                    <button 
+                      className={styles.dropdownItem} 
+                      onClick={() => { 
+                        logout(); 
+                        setOpen(false); 
+                        setShowProfileMenu(false); 
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : null}
           </div>
         </div>

@@ -109,8 +109,21 @@ export default function BladeMaster({
   const [timeLeft, setTimeLeft] =
     useState(GAME_TIME);
 
-  const [knivesLeft, setKnivesLeft] =
-    useState(TOTAL_KNIVES);
+  const [knivesLeft, setKnivesLeft] = useState(8);
+  const [level, setLevel] = useState(1);
+  /* =======================================================
+     DRAG TO AIM (Refs for performance)
+     ======================================================= */
+  const dragStartY = useRef(null);
+  const dragCurrentY = useRef(0);
+  const readyKnifeRef = useRef(null);
+  const trajectoryRef = useRef(null);
+  const throwZoneRef = useRef(null);
+
+  const maxLevels = 5;
+
+  const getTotalKnives = (lvl) => 6 + (lvl * 2); // L1: 8, L2: 10, L3: 12, L4: 14, L5: 16
+  const getLevelSpeed = (lvl) => 0.06 + (lvl * 0.02);
 
   const [combo, setCombo] =
     useState(0);
@@ -213,13 +226,12 @@ export default function BladeMaster({
       previousTime = currentTime;
 
       /*
-        Dynamic rotation logic.
-        Uses time to occasionally alter speed and direction
-        for a much more challenging and professional game loop.
+        Dynamic rotation logic scaled by level.
       */
-      const baseSpeed = 0.055;
-      const phase = (currentTime / 1800) % (Math.PI * 2);
-      const speedMultiplier = Math.sin(phase) + Math.sin(phase * 1.5) * 0.5;
+      const baseSpeed = getLevelSpeed(level);
+      const phase = (currentTime / (2000 - level * 200)) % (Math.PI * 2);
+      const volatility = 0.3 + (level * 0.15); 
+      const speedMultiplier = level === 1 ? 1 : (Math.sin(phase) + Math.sin(phase * 1.5) * volatility);
       const speed = baseSpeed * speedMultiplier;
 
       rotationRef.current =
@@ -348,7 +360,8 @@ export default function BladeMaster({
       knifeId,
       localAngle,
       impactX,
-      impactY
+      impactY,
+      isPerfect = false
     ) => {
       if (flyingAnchorRef.current) {
         flyingAnchorRef.current.style.display = "none";
@@ -401,80 +414,39 @@ export default function BladeMaster({
          SUCCESS
          =================================================== */
 
-      const newCombo =
-        combo + 1;
+      const newCombo = combo + 1;
+      const bonus = Math.max(0, newCombo - 1) * COMBO_BONUS + (isPerfect ? 50 : 0);
 
-      const bonus =
-        Math.max(
-          0,
-          newCombo - 1
-        ) * COMBO_BONUS;
-
-      setScore(
-        (previous) =>
-          previous +
-          BASE_SCORE +
-          bonus
-      );
-
+      setScore((previous) => previous + BASE_SCORE + bonus);
       setCombo(newCombo);
-
-      setBestCombo(
-        (previous) =>
-          Math.max(
-            previous,
-            newCombo
-          )
-      );
-
+      setBestCombo((previous) => Math.max(previous, newCombo));
       setShowCombo(true);
-
       setShake(true);
+      
+      // Different color particles for perfect hits
+      createParticles(impactX, impactY);
 
-      createParticles(
-        impactX,
-        impactY
-      );
+      setTimeout(() => setShowCombo(false), 700);
+      setTimeout(() => setShake(false), 220);
 
-      setTimeout(() => {
-        setShowCombo(false);
-      }, 700);
-
-      setTimeout(() => {
-        setShake(false);
-      }, 220);
-
-      /*
-        Store LOCAL target angle.
-
-        The knife is a child of the
-        rotating target, so it follows
-        the target rotation naturally.
-      */
-      setStuckKnives(
-        (previous) => [
-          ...previous,
-          {
-            id: knifeId,
-            angle: localAngle,
-          },
-        ]
-      );
+      setStuckKnives((previous) => [...previous, { id: knifeId, angle: localAngle }]);
 
       if (knivesLeft <= 1) {
         setTimeout(() => {
-          setGameState(
-            "complete"
-          );
+          if (level >= maxLevels) {
+            setGameState("complete");
+          } else {
+            // Next Level
+            setLevel(l => l + 1);
+            setKnivesLeft(getTotalKnives(level + 1));
+            setStuckKnives([]);
+            setTimeLeft(GAME_TIME);
+            setCombo(0);
+          }
         }, 700);
       }
     },
-    [
-      combo,
-      createParticles,
-      knivesLeft,
-      stuckKnives,
-    ]
+    [combo, createParticles, knivesLeft, stuckKnives, level]
   );
 
   /* =======================================================
@@ -482,77 +454,20 @@ export default function BladeMaster({
      ======================================================= */
 
   const throwKnife = useCallback(() => {
-    if (gameState !== "playing") {
-      return;
-    }
+    if (gameState !== "playing" || isFlyingRef.current || knivesLeft <= 0) return;
 
-    if (isFlyingRef.current) {
-      return;
-    }
+    const target = getTargetInfo();
+    if (!target) return;
 
-    if (knivesLeft <= 0) {
-      return;
-    }
+    const impactX = target.centerX;
+    const impactY = target.centerY + target.radius;
+    const startX = target.centerX;
+    const startY = Math.min(arenaRef.current.clientHeight - 85, target.centerY + target.radius + 190);
+    const duration = 100; // Fast snap
+    const startTime = performance.now();
+    const knifeId = Date.now() + Math.random();
 
-    const target =
-      getTargetInfo();
-
-    if (!target) {
-      return;
-    }
-
-    /*
-      The throw comes from the bottom.
-
-      In screen coordinates:
-      0   = right
-      90  = bottom
-      180 = left
-      270 = top
-
-      Convert current world angle
-      to target-local angle.
-    */
-
-
-    /*
-      Exact blade-tip impact point.
-    */
-    const impactX =
-      target.centerX;
-
-    const impactY =
-      target.centerY +
-      target.radius;
-
-    /*
-      Start below the target.
-    */
-    const startX =
-      target.centerX;
-
-    const startY =
-      Math.min(
-        arenaRef.current.clientHeight -
-          85,
-        target.centerY +
-          target.radius +
-          190
-      );
-
-    const duration = 120; // Snappier throw speed
-
-    const startTime =
-      performance.now();
-
-    const knifeId =
-      Date.now() +
-      Math.random();
-
-    setKnivesLeft(
-      (previous) =>
-        previous - 1
-    );
+    setKnivesLeft(prev => prev - 1);
 
     if (flyingAnchorRef.current) {
       flyingAnchorRef.current.style.display = "block";
@@ -561,36 +476,25 @@ export default function BladeMaster({
     }
     isFlyingRef.current = true;
 
+    // Check if it's a perfect hit
+    let isPerfect = false;
+    if (stuckKnives.length > 0) {
+      const targetAngle = normalizeAngle(90 - rotationRef.current);
+      let minDiff = 360;
+      stuckKnives.forEach(k => {
+        const diff = angleDifference(k.angle, targetAngle);
+        if (diff < minDiff) minDiff = diff;
+      });
+      if (minDiff > 60) isPerfect = true; // Perfect gap hit
+    } else {
+      isPerfect = true; // First hit is perfect
+    }
+
     const animate = (currentTime) => {
-      const progress =
-        Math.min(
-          (currentTime -
-            startTime) /
-            duration,
-          1
-        );
-
-      /*
-        Stronger acceleration for a professional feel.
-      */
-      const eased =
-        1 -
-        Math.pow(
-          1 - progress,
-          4
-        );
-
-      const x =
-        startX +
-        (impactX -
-          startX) *
-          eased;
-
-      const y =
-        startY +
-        (impactY -
-          startY) *
-          eased;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const x = startX + (impactX - startX) * eased;
+      const y = startY + (impactY - startY) * eased;
 
       if (flyingAnchorRef.current) {
         flyingAnchorRef.current.style.left = `${x}px`;
@@ -598,79 +502,86 @@ export default function BladeMaster({
       }
 
       if (progress < 1) {
-        flightFrameRef.current =
-          requestAnimationFrame(
-            animate
-          );
+        flightFrameRef.current = requestAnimationFrame(animate);
       } else {
         const finalAngle = normalizeAngle(90 - rotationRef.current);
-        
-        finishThrow(
-          knifeId,
-          finalAngle,
-          impactX,
-          impactY
-        );
+        finishThrow(knifeId, finalAngle, impactX, impactY, isPerfect);
       }
     };
+    flightFrameRef.current = requestAnimationFrame(animate);
+  }, [finishThrow, gameState, getTargetInfo, knivesLeft, stuckKnives]);
 
-    flightFrameRef.current =
-      requestAnimationFrame(
-        animate
-      );
-  }, [
-    finishThrow,
-    flyingAnchorRef,
-    gameState,
-    getTargetInfo,
-    knivesLeft,
-  ]);
+  /* =======================================================
+     DRAG HANDLERS (Direct DOM manipulation)
+     ======================================================= */
+  const handlePointerDown = (e) => {
+    if (gameState !== "playing" || isFlyingRef.current || knivesLeft <= 0) return;
+    dragStartY.current = e.clientY;
+    dragCurrentY.current = 0;
+    e.target.setPointerCapture(e.pointerId);
+    
+    if (throwZoneRef.current) throwZoneRef.current.style.cursor = 'grabbing';
+    if (trajectoryRef.current) {
+      trajectoryRef.current.style.display = 'block';
+      trajectoryRef.current.style.height = '200px';
+      trajectoryRef.current.style.bottom = '100px';
+    }
+    // Hide hint when dragging
+    const hint = document.querySelector('.drag-hint');
+    if (hint) hint.style.opacity = '0';
+  };
+
+  const handlePointerMove = (e) => {
+    if (dragStartY.current === null) return;
+    const dy = Math.max(0, Math.min(e.clientY - dragStartY.current, 80));
+    dragCurrentY.current = dy;
+
+    if (readyKnifeRef.current) {
+      readyKnifeRef.current.style.transform = `translateY(${dy}px)`;
+    }
+    if (trajectoryRef.current) {
+      trajectoryRef.current.style.height = `${200 - dy}px`;
+      trajectoryRef.current.style.bottom = `${100 - dy}px`;
+    }
+  };
+
+  const handlePointerUp = (e) => {
+    if (dragStartY.current === null) return;
+    dragStartY.current = null;
+    e.target.releasePointerCapture(e.pointerId);
+    
+    if (throwZoneRef.current) throwZoneRef.current.style.cursor = 'grab';
+    if (readyKnifeRef.current) readyKnifeRef.current.style.transform = `translateY(0px)`;
+    if (trajectoryRef.current) trajectoryRef.current.style.display = 'none';
+    
+    const hint = document.querySelector('.drag-hint');
+    if (hint) hint.style.opacity = '1';
+
+    throwKnife();
+  };
 
   /* =======================================================
      START GAME
      ======================================================= */
 
   const startGame = (keepScore = false) => {
-    cancelAnimationFrame(
-      flightFrameRef.current
-    );
-
+    cancelAnimationFrame(flightFrameRef.current);
     rotationRef.current = 0;
-    
     if (targetRef.current) {
       targetRef.current.style.transform = `translate(-50%, -50%) rotate(0deg)`;
     }
-
-    if (!keepScore) {
-      setScore(0);
-    }
-
-    setTimeLeft(
-      GAME_TIME
-    );
-
-    setKnivesLeft(
-      TOTAL_KNIVES
-    );
-
+    if (!keepScore) setScore(0);
+    setLevel(1);
+    setTimeLeft(GAME_TIME);
+    setKnivesLeft(getTotalKnives(1));
     setCombo(0);
-
     setBestCombo(0);
-
     setStuckKnives([]);
-
-    if (flyingAnchorRef.current) {
-      flyingAnchorRef.current.style.display = "none";
-    }
+    if (flyingAnchorRef.current) flyingAnchorRef.current.style.display = "none";
     isFlyingRef.current = false;
-
     setParticles([]);
-
     setShowCombo(false);
-
-    setGameState(
-      "playing"
-    );
+    setGameState("playing");
   };
 
   useEffect(() => {
@@ -911,39 +822,23 @@ export default function BladeMaster({
         >
 
           {/* HUD */}
-
           <div className="hud">
-
             <div className="hud-box">
-              <small>
-                SCORE
-              </small>
-
-              <strong>
-                {score}
-              </strong>
+              <small>LEVEL</small>
+              <strong style={{ color: '#ffcc33' }}>{level}</strong>
             </div>
-
             <div className="hud-box">
-              <small>
-                TIME
-              </small>
-
-              <strong>
-                {timeLeft}s
-              </strong>
+              <small>SCORE</small>
+              <strong>{score}</strong>
             </div>
-
             <div className="hud-box">
-              <small>
-                COMBO
-              </small>
-
-              <strong>
-                x{combo}
-              </strong>
+              <small>TIME</small>
+              <strong>{timeLeft}s</strong>
             </div>
-
+            <div className="hud-box">
+              <small>COMBO</small>
+              <strong>x{combo}</strong>
+            </div>
           </div>
 
           {/* TARGET */}
@@ -1163,61 +1058,29 @@ export default function BladeMaster({
 
             </div>
 
-          {/* =================================================
+        {/* =================================================
               THROW AREA
               ================================================= */}
 
-          <div className="throw-zone">
+        <div 
+          ref={throwZoneRef}
+          className="throw-zone" 
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          style={{ cursor: 'grab', touchAction: 'none' }}
+        >
+          <div ref={trajectoryRef} className="aim-trajectory" style={{ display: 'none', height: '200px', bottom: '100px' }}></div>
 
-            <div className="aim-guide">
-
-              <div className="aim-circle" />
-
-              <div className="aim-arrow">
-                ↑
-              </div>
-
-            </div>
-
-            {/* Ready knife */}
-
-            <div className="ready-knife">
-
-              <Knife />
-
-            </div>
-
-            {/* Throw button */}
-
-            <button
-              className="throw-button"
-              onClick={
-                throwKnife
-              }
-              disabled={
-                gameState !==
-                  "playing" ||
-                knivesLeft <= 0
-              }
-            >
-
-              <span>
-                ◉
-              </span>
-
-              CLICK TO THROW
-
-            </button>
-
-            <div className="space-text">
-              Press
-              <b>
-                SPACE
-              </b>
-              to throw
-            </div>
-
+          <div ref={readyKnifeRef} className="ready-knife" style={{ transform: `translateY(0px)` }}>
+            {knivesLeft > 0 ? <Knife /> : null}
           </div>
+          
+          <div className="drag-hint" style={{ transform: `translateY(40px)`, color: '#ccc', fontSize: '0.9rem', transition: 'opacity 0.2s' }}>
+            Drag down and release to throw
+          </div>
+        </div>
 
           {/* COMBO */}
 
@@ -1242,39 +1105,23 @@ export default function BladeMaster({
             </h3>
 
             <div className="mini-knives">
-
               {Array.from(
-                {
-                  length:
-                    TOTAL_KNIVES,
-                },
+                { length: getTotalKnives(level) },
                 (_, index) => (
                   <div
                     key={index}
                     className={
-                      index <
-                      knivesLeft
-                        ? "mini-knife"
-                        : "mini-knife disabled"
+                      index < knivesLeft ? "mini-knife" : "mini-knife disabled"
                     }
                   >
-
                     <Knife />
-
                   </div>
                 )
               )}
-
             </div>
-
             <div className="blade-number">
-
               {knivesLeft}
-
-              <span>
-                /{TOTAL_KNIVES}
-              </span>
-
+              <span>/{getTotalKnives(level)}</span>
             </div>
 
           </div>
@@ -1418,13 +1265,8 @@ export default function BladeMaster({
               </div>
 
               <div>
-                <strong>
-                  {TOTAL_KNIVES - knivesLeft}
-                </strong>
-
-                <span>
-                  HITS
-                </span>
+                <strong>{getTotalKnives(level) - knivesLeft}</strong>
+                <span>HITS</span>
               </div>
 
             </div>

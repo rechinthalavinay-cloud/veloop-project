@@ -10,8 +10,9 @@ This is a frontend prototype. Token, Game Coin, VE, SVE, Gem, and Spin balances 
 - Coded Play Now bar with 20 Token cost, token icon (~20px), and infinite shimmer
 - Horizontal auto-scroll carousel, swipe/drag, pause on hover, dot indicators, no arrows
 - Play Now opens a game-specific home page (does not start the match immediately)
-- Two playable games: **Blade Master** and **Slice Storm**
-- First-time How to Play guide, token validation, revive / No Thanks, Game Coin rewards
+- **13 fully playable games** including Blade Master, Slice Storm, Word Hunt, Cosmo Warrior, and more!
+- Persistent High Scores via local storage.
+- First-time How to Play guide, token validation, Game Over screen, Game Coin rewards
 - Central Game Coin balance shared across games and Redeem
 - Redeem Game Coins into VE, SVE, Gems, Tokens, or Spins with confirmation and history
 - Daily reward sessions and a dummy VE withdrawal flow (50 VE minimum)
