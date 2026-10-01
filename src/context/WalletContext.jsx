@@ -9,7 +9,7 @@ import {
 const STORAGE_KEY = "veloop-wallet-v1";
 
 const defaultWallet = {
-  tokens: 20,
+  tokens: 40,
   gameCoins: 40,
   ves: 0,
   sves: 0,
