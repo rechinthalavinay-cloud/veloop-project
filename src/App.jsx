@@ -8,6 +8,7 @@ import Redeem from "./pages/Redeem";
 import Rewards from "./pages/Rewards";
 import Withdraw from "./pages/Withdraw";
 import ReferEarn from "./pages/ReferEarn";
+import SpinWheel from "./pages/SpinWheel";
 
 const GamePlay = lazy(() => import("./pages/GamePlay"));
 
@@ -81,6 +82,14 @@ export default function App() {
           element={
             <Protected>
               <ReferEarn />
+            </Protected>
+          }
+        />
+        <Route
+          path="/spin"
+          element={
+            <Protected>
+              <SpinWheel />
             </Protected>
           }
         />

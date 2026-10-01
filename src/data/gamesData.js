@@ -352,7 +352,7 @@ export const rewardSessions = [
     id: "weekly",
     title: "Weekly Reward",
     window: "Once a week",
-    reward: { gems: 1 },
-    description: "Claim 1 Gem every week.",
+    reward: { gems: 1, spins: 1 },
+    description: "Claim 1 Gem and 1 Spin token every week.",
   },
 ];

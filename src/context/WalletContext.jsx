@@ -14,7 +14,7 @@ const defaultWallet = {
   ves: 0,
   sves: 0,
   gems: 0,
-  spins: 0,
+  spins: 10,
   redemptions: [],
   withdrawals: [],
   claimedSessions: {},
@@ -149,6 +149,26 @@ export function WalletProvider({ children }) {
     [persist],
   );
 
+  const consumeSpin = useCallback(
+    (rewardKey, rewardAmount) => {
+      let result = { ok: false, reason: "unknown" };
+      persist((current) => {
+        if (current.spins <= 0) {
+          result = { ok: false, reason: "insufficient" };
+          return current;
+        }
+        result = { ok: true };
+        return {
+          ...current,
+          spins: current.spins - 1,
+          [rewardKey]: (current[rewardKey] || 0) + rewardAmount,
+        };
+      });
+      return result;
+    },
+    [persist],
+  );
+
   const withdrawVes = useCallback(
     ({ amount, method, destination }) => {
       let result = { ok: false, reason: "unknown" };
@@ -192,9 +212,10 @@ export function WalletProvider({ children }) {
       markGuideSeen,
       redeem,
       claimSession,
+      consumeSpin,
       withdrawVes,
     }),
-    [wallet, spendTokens, addGameCoins, markGuideSeen, redeem, claimSession, withdrawVes],
+    [wallet, spendTokens, addGameCoins, markGuideSeen, redeem, claimSession, consumeSpin, withdrawVes],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

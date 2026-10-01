@@ -9,6 +9,7 @@ import styles from "./Navbar.module.css";
 const links = [
   { to: "/", label: "Home" },
   { to: "/#games", label: "Games" },
+  { to: "/spin", label: "Lucky Spin" },
   { to: "/rewards", label: "Rewards" },
   { to: "/redeem", label: "Redeem" },
   { to: "/withdraw", label: "Withdraw" },
