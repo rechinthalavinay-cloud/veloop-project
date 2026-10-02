@@ -49,15 +49,14 @@ export function WalletProvider({ children }) {
 
   const spendTokens = useCallback(
     (amount) => {
-      let success = false;
+      if (wallet.tokens < amount) return false;
       persist((current) => {
-        if (current.tokens < amount) return current;
-        success = true;
+        if (current.tokens < amount) return current; // Double check inside updater
         return { ...current, tokens: current.tokens - amount };
       });
-      return success;
+      return true;
     },
-    [persist],
+    [persist, wallet.tokens],
   );
 
   const addGameCoins = useCallback(
@@ -82,15 +81,15 @@ export function WalletProvider({ children }) {
 
   const redeem = useCallback(
     (offer) => {
-      let result = { ok: false, reason: "unknown" };
+      const costKey = offer.costKey || "gameCoins";
+      if (wallet[costKey] < offer.cost) {
+        return { ok: false, reason: "insufficient" };
+      }
+      
+      const label = `${offer.cost} ${offer.costLabel || "Game Coins"} → ${offer.reward} ${offer.rewardLabel}`;
+      
       persist((current) => {
-        const costKey = offer.costKey || "gameCoins";
-        if (current[costKey] < offer.cost) {
-          result = { ok: false, reason: "insufficient" };
-          return current;
-        }
-        result = { ok: true };
-        const label = `${offer.cost} ${offer.costLabel || "Game Coins"} → ${offer.reward} ${offer.rewardLabel}`;
+        if (current[costKey] < offer.cost) return current; // Double check
         return {
           ...current,
           [costKey]: current[costKey] - offer.cost,
@@ -108,9 +107,10 @@ export function WalletProvider({ children }) {
           ].slice(0, 20),
         };
       });
-      return result;
+      
+      return { ok: true };
     },
-    [persist],
+    [persist, wallet],
   );
 
   const claimSession = useCallback(
@@ -151,22 +151,22 @@ export function WalletProvider({ children }) {
 
   const consumeSpin = useCallback(
     (rewardKey, rewardAmount) => {
-      let result = { ok: false, reason: "unknown" };
+      if (wallet.spins <= 0) {
+        return { ok: false, reason: "insufficient" };
+      }
+      
       persist((current) => {
-        if (current.spins <= 0) {
-          result = { ok: false, reason: "insufficient" };
-          return current;
-        }
-        result = { ok: true };
+        if (current.spins <= 0) return current;
         return {
           ...current,
           spins: current.spins - 1,
           [rewardKey]: (current[rewardKey] || 0) + rewardAmount,
         };
       });
-      return result;
+      
+      return { ok: true };
     },
-    [persist],
+    [persist, wallet.spins],
   );
 
   const withdrawVes = useCallback(

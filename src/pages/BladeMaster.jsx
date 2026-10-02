@@ -533,7 +533,9 @@ export default function BladeMaster({
 
   const handlePointerMove = (e) => {
     if (dragStartY.current === null) return;
-    const dy = Math.max(0, Math.min(e.clientY - dragStartY.current, 80));
+    // Apply realistic resistance (0.4 multiplier) to make it feel like pulling a tight rubber band
+    const rawDy = (e.clientY - dragStartY.current) * 0.4;
+    const dy = Math.max(0, Math.min(rawDy, 120));
     dragCurrentY.current = dy;
 
     if (readyKnifeRef.current) {
@@ -547,7 +549,10 @@ export default function BladeMaster({
 
   const handlePointerUp = (e) => {
     if (dragStartY.current === null) return;
+    const draggedDistance = dragCurrentY.current;
+    
     dragStartY.current = null;
+    dragCurrentY.current = 0;
     e.target.releasePointerCapture(e.pointerId);
     
     if (throwZoneRef.current) throwZoneRef.current.style.cursor = 'grab';
@@ -557,7 +562,11 @@ export default function BladeMaster({
     const hint = document.querySelector('.drag-hint');
     if (hint) hint.style.opacity = '1';
 
-    throwKnife();
+    // Only throw if they just tapped (dragged 0) OR if they pulled back enough (e.g. > 15px)
+    // If they pulled back slightly and changed their mind, don't throw.
+    if (draggedDistance === 0 || draggedDistance > 15) {
+      throwKnife();
+    }
   };
 
   /* =======================================================

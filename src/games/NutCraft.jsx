@@ -76,111 +76,92 @@ function generateLevelData(levelIdx) {
   let planks = [];
   let screws = [];
   let targetTime = 60;
+  let maxMoves = 10;
 
   if (levelIdx === 0) {
-    // Level 1: 4 planks
     holes = [ 
       { id: 'h1', x: 80, y: 150 }, { id: 'h2', x: 220, y: 150 }, 
       { id: 'h3', x: 120, y: 230 }, { id: 'h4', x: 260, y: 230 },
-      { id: 'h5', x: 160, y: 100 }, { id: 'h6', x: 160, y: 280 },
-      { id: 'h7', x: 200, y: 80 }, { id: 'h8', x: 200, y: 200 },
       { id: 'e1', x: 100, y: 80 }, { id: 'e2', x: 260, y: 90 }
     ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 }, 
-      { id: 'p2', h1: 'h3', h2: 'h4', z: 20 },
-      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 },
-      { id: 'p4', h1: 'h7', h2: 'h8', z: 40 }
+      { id: 'p2', h1: 'h3', h2: 'h4', z: 20 }
     ];
     screws = [ 
       { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
-      { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
-      { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' }
+      { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' }
     ];
-    targetTime = 50;
+    targetTime = 60;
+    maxMoves = 6;
   } else if (levelIdx === 1) {
     holes = [ 
       { id: 'h1', x: 100, y: 120 }, { id: 'h2', x: 240, y: 120 },
       { id: 'h3', x: 170, y: 180 }, { id: 'h4', x: 170, y: 320 },
       { id: 'h5', x: 100, y: 260 }, { id: 'h6', x: 240, y: 260 },
-      { id: 'h7', x: 70, y: 190 }, { id: 'h8', x: 270, y: 190 },
       { id: 'e1', x: 170, y: 60 }, { id: 'e2', x: 280, y: 60 }
     ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 }, 
       { id: 'p2', h1: 'h3', h2: 'h4', z: 20 },
-      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 },
-      { id: 'p4', h1: 'h7', h2: 'h8', z: 40 }
+      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 }
     ];
     screws = [ 
       { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' },
       { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
-      { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' }
+      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' }
     ];
-    targetTime = 60;
+    targetTime = 80;
+    maxMoves = 10;
   } else if (levelIdx === 2) {
     holes = [ 
       { id: 'h1', x: 80, y: 80 }, { id: 'h2', x: 260, y: 260 }, 
       { id: 'h3', x: 260, y: 80 }, { id: 'h4', x: 80, y: 260 }, 
       { id: 'h5', x: 170, y: 50 }, { id: 'h6', x: 170, y: 300 },  
-      { id: 'h7', x: 50, y: 170 }, { id: 'h8', x: 290, y: 170 },  
-      { id: 'h9', x: 110, y: 110 }, { id: 'h10', x: 230, y: 110 }, 
-      { id: 'e1', x: 170, y: 170 }, { id: 'e2', x: 170, y: 350 }  
+      { id: 'e1', x: 170, y: 170 }, { id: 'e2', x: 170, y: 350 }, { id: 'e3', x: 50, y: 170 }
     ];
     planks = [ 
       { id: 'p1', h1: 'h1', h2: 'h2', z: 10 },
       { id: 'p2', h1: 'h3', h2: 'h4', z: 20 },
-      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 },
-      { id: 'p4', h1: 'h7', h2: 'h8', z: 40 },
-      { id: 'p5', h1: 'h9', h2: 'h10', z: 50 } 
+      { id: 'p3', h1: 'h5', h2: 'h6', z: 30 }
     ];
     screws = [ 
       { id: 's1', holeId: 'h1' }, { id: 's2', holeId: 'h2' }, 
       { id: 's3', holeId: 'h3' }, { id: 's4', holeId: 'h4' },
-      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' },
-      { id: 's7', holeId: 'h7' }, { id: 's8', holeId: 'h8' },
-      { id: 's9', holeId: 'h9' }, { id: 's10', holeId: 'h10' } 
+      { id: 's5', holeId: 'h5' }, { id: 's6', holeId: 'h6' }
     ];
-    targetTime = 90;
+    targetTime = 100;
+    maxMoves = 15;
   } else if (levelIdx === 3) {
     holes = [
       {id:'v1a',x:110,y:80}, {id:'v1b',x:110,y:300}, 
       {id:'v2a',x:230,y:80}, {id:'v2b',x:230,y:300}, 
       {id:'h1a',x:60,y:130}, {id:'h1b',x:280,y:130}, 
       {id:'h2a',x:60,y:250}, {id:'h2b',x:280,y:250}, 
-      {id:'d1a',x:170,y:60}, {id:'d1b',x:170,y:320},
-      {id:'d2a',x:170,y:190}, {id:'d2b',x:170,y:360},
       {id:'e1',x:60,y:190}, {id:'e2',x:280,y:190}, {id:'e3',x:110,y:190} 
     ];
     planks = [
       { id: 'p1', h1: 'v1a', h2: 'v1b', z: 10 },
       { id: 'p2', h1: 'v2a', h2: 'v2b', z: 20 },
       { id: 'p3', h1: 'h1a', h2: 'h1b', z: 30 },
-      { id: 'p4', h1: 'h2a', h2: 'h2b', z: 40 },
-      { id: 'p5', h1: 'd1a', h2: 'd1b', z: 50 },
-      { id: 'p6', h1: 'd2a', h2: 'd2b', z: 60 }
+      { id: 'p4', h1: 'h2a', h2: 'h2b', z: 40 }
     ];
     screws = [
       { id: 's1', holeId: 'v1a' }, { id: 's2', holeId: 'v1b' }, 
       { id: 's3', holeId: 'v2a' }, { id: 's4', holeId: 'v2b' },
       { id: 's5', holeId: 'h1a' }, { id: 's6', holeId: 'h1b' },
-      { id: 's7', holeId: 'h2a' }, { id: 's8', holeId: 'h2b' },
-      { id: 's9', holeId: 'd1a' }, { id: 's10', holeId: 'd1b' },
-      { id: 's11', holeId: 'd2a' }, { id: 's12', holeId: 'd2b' }
+      { id: 's7', holeId: 'h2a' }, { id: 's8', holeId: 'h2b' }
     ];
     targetTime = 120;
-  } else if (levelIdx === 4) { 
+    maxMoves = 20;
+  } else {
+    // Level 5
     holes = [
       {id:'a1',x:60,y:100}, {id:'a2',x:280,y:100},
       {id:'b1',x:60,y:200}, {id:'b2',x:280,y:200},
       {id:'c1',x:60,y:300}, {id:'c2',x:280,y:300},
       {id:'d1',x:120,y:60}, {id:'d2',x:120,y:340},
       {id:'e1',x:220,y:60}, {id:'e2',x:220,y:340},
-      {id:'f1',x:170,y:60}, {id:'f2',x:170,y:340},
-      {id:'g1',x:90,y:150}, {id:'g2',x:250,y:150},
-      {id:'h1',x:90,y:250}, {id:'h2',x:250,y:250},
       {id:'x1',x:170,y:200}, {id:'x2',x:170,y:150}, {id:'x3',x:170,y:250}
     ];
     planks = [
@@ -188,141 +169,20 @@ function generateLevelData(levelIdx) {
       {id:'p2', h1:'b1', h2:'b2', z:20},
       {id:'p3', h1:'c1', h2:'c2', z:30},
       {id:'p4', h1:'d1', h2:'d2', z:40}, 
-      {id:'p5', h1:'e1', h2:'e2', z:50},   
-      {id:'p6', h1:'f1', h2:'f2', z:60},   
-      {id:'p7', h1:'g1', h2:'g2', z:70},
-      {id:'p8', h1:'h1', h2:'h2', z:80},
+      {id:'p5', h1:'e1', h2:'e2', z:50}
     ];
     screws = [
       { id: 's1', holeId: 'a1' }, { id: 's2', holeId: 'a2' },
       { id: 's3', holeId: 'b1' }, { id: 's4', holeId: 'b2' },
       { id: 's5', holeId: 'c1' }, { id: 's6', holeId: 'c2' },
       { id: 's7', holeId: 'd1' }, { id: 's8', holeId: 'd2' },
-      { id: 's9', holeId: 'e1' }, { id: 's10', holeId: 'e2' },
-      { id: 's11', holeId: 'f1' }, { id: 's12', holeId: 'f2' },
-      { id: 's13', holeId: 'g1' }, { id: 's14', holeId: 'g2' },
-      { id: 's15', holeId: 'h1' }, { id: 's16', holeId: 'h2' }
+      { id: 's9', holeId: 'e1' }, { id: 's10', holeId: 'e2' }
     ];
     targetTime = 180;
-  } else if (levelIdx === 5) {
-    // Level 6: Zig Zag Pattern
-    holes = [
-      {id:'h1',x:50,y:50}, {id:'h2',x:150,y:150},
-      {id:'h3',x:250,y:50}, {id:'h4',x:350,y:150},
-      {id:'h5',x:50,y:250}, {id:'h6',x:150,y:350},
-      {id:'h7',x:250,y:250}, {id:'h8',x:350,y:350},
-      {id:'e1',x:100,y:100}, {id:'e2',x:300,y:100},
-      {id:'e3',x:100,y:300}, {id:'e4',x:300,y:300}
-    ];
-    planks = [
-      {id:'p1', h1:'h1', h2:'h2', z:10},
-      {id:'p2', h1:'h2', h2:'h3', z:20},
-      {id:'p3', h1:'h3', h2:'h4', z:30},
-      {id:'p4', h1:'h5', h2:'h6', z:40},
-      {id:'p5', h1:'h6', h2:'h7', z:50},
-      {id:'p6', h1:'h7', h2:'h8', z:60}
-    ];
-    screws = [
-      {id:'s1', holeId:'h1'}, {id:'s2', holeId:'h2'}, {id:'s3', holeId:'h3'}, {id:'s4', holeId:'h4'},
-      {id:'s5', holeId:'h5'}, {id:'s6', holeId:'h6'}, {id:'s7', holeId:'h7'}, {id:'s8', holeId:'h8'}
-    ];
-    targetTime = 150;
-  } else if (levelIdx === 6) {
-    // Level 7: Starburst
-    holes = [
-      {id:'c',x:200,y:200},
-      {id:'t',x:200,y:40}, {id:'b',x:200,y:360},
-      {id:'l',x:40,y:200}, {id:'r',x:360,y:200},
-      {id:'tl',x:80,y:80}, {id:'br',x:320,y:320},
-      {id:'tr',x:320,y:80}, {id:'bl',x:80,y:320},
-      {id:'e1',x:140,y:140}, {id:'e2',x:260,y:260},
-      {id:'e3',x:260,y:140}, {id:'e4',x:140,y:260}
-    ];
-    planks = [
-      {id:'p1', h1:'l', h2:'c', z:10}, {id:'p2', h1:'c', h2:'r', z:20},
-      {id:'p3', h1:'t', h2:'c', z:30}, {id:'p4', h1:'c', h2:'b', z:40},
-      {id:'p5', h1:'tl', h2:'c', z:50}, {id:'p6', h1:'c', h2:'br', z:60},
-      {id:'p7', h1:'tr', h2:'c', z:70}, {id:'p8', h1:'c', h2:'bl', z:80}
-    ];
-    screws = [
-      {id:'s1', holeId:'l'}, {id:'s2', holeId:'r'}, {id:'s3', holeId:'t'}, {id:'s4', holeId:'b'},
-      {id:'s5', holeId:'tl'}, {id:'s6', holeId:'br'}, {id:'s7', holeId:'tr'}, {id:'s8', holeId:'bl'},
-      {id:'s9', holeId:'c'}
-    ];
-    targetTime = 200;
-  } else if (levelIdx === 7) {
-    // Level 8: Double Box
-    holes = [
-      {id:'o1',x:60,y:60}, {id:'o2',x:340,y:60}, {id:'o3',x:340,y:340}, {id:'o4',x:60,y:340},
-      {id:'i1',x:120,y:120}, {id:'i2',x:280,y:120}, {id:'i3',x:280,y:280}, {id:'i4',x:120,y:280},
-      {id:'e1',x:200,y:60}, {id:'e2',x:200,y:340}, {id:'e3',x:60,y:200}, {id:'e4',x:340,y:200},
-      {id:'e5',x:200,y:120}, {id:'e6',x:200,y:280}, {id:'e7',x:120,y:200}, {id:'e8',x:280,y:200}
-    ];
-    planks = [
-      {id:'p1', h1:'o1', h2:'o2', z:10}, {id:'p2', h1:'o2', h2:'o3', z:20},
-      {id:'p3', h1:'o3', h2:'o4', z:30}, {id:'p4', h1:'o4', h2:'o1', z:40},
-      {id:'p5', h1:'i1', h2:'i2', z:50}, {id:'p6', h1:'i2', h2:'i3', z:60},
-      {id:'p7', h1:'i3', h2:'i4', z:70}, {id:'p8', h1:'i4', h2:'i1', z:80},
-      {id:'p9', h1:'o1', h2:'i1', z:90}, {id:'p10', h1:'o3', h2:'i3', z:100}
-    ];
-    screws = [
-      {id:'s1', holeId:'o1'}, {id:'s2', holeId:'o2'}, {id:'s3', holeId:'o3'}, {id:'s4', holeId:'o4'},
-      {id:'s5', holeId:'i1'}, {id:'s6', holeId:'i2'}, {id:'s7', holeId:'i3'}, {id:'s8', holeId:'i4'}
-    ];
-    targetTime = 220;
-  } else if (levelIdx === 8) {
-    // Level 9: X Marks the Spot
-    holes = [
-      {id:'tl',x:50,y:50}, {id:'br',x:350,y:350},
-      {id:'tr',x:350,y:50}, {id:'bl',x:50,y:350},
-      {id:'c1',x:170,y:170}, {id:'c2',x:230,y:230},
-      {id:'c3',x:230,y:170}, {id:'c4',x:170,y:230},
-      {id:'m1',x:200,y:100}, {id:'m2',x:200,y:300},
-      {id:'m3',x:100,y:200}, {id:'m4',x:300,y:200},
-      {id:'e1',x:200,y:50}, {id:'e2',x:200,y:350}
-    ];
-    planks = [
-      {id:'p1', h1:'tl', h2:'c1', z:10}, {id:'p2', h1:'c2', h2:'br', z:20},
-      {id:'p3', h1:'tr', h2:'c3', z:30}, {id:'p4', h1:'c4', h2:'bl', z:40},
-      {id:'p5', h1:'c1', h2:'c2', z:50}, {id:'p6', h1:'c3', h2:'c4', z:60},
-      {id:'p7', h1:'m1', h2:'m2', z:70}, {id:'p8', h1:'m3', h2:'m4', z:80}
-    ];
-    screws = [
-      {id:'s1', holeId:'tl'}, {id:'s2', holeId:'br'}, {id:'s3', holeId:'tr'}, {id:'s4', holeId:'bl'},
-      {id:'s5', holeId:'c1'}, {id:'s6', holeId:'c2'}, {id:'s7', holeId:'c3'}, {id:'s8', holeId:'c4'},
-      {id:'s9', holeId:'m1'}, {id:'s10', holeId:'m2'}, {id:'s11', holeId:'m3'}, {id:'s12', holeId:'m4'}
-    ];
-    targetTime = 240;
-  } else if (levelIdx >= 9) {
-    // Level 10: The Ultimate Challenge
-    holes = [
-      {id:'a',x:100,y:80}, {id:'b',x:300,y:80},
-      {id:'c',x:50,y:200}, {id:'d',x:200,y:200}, {id:'e',x:350,y:200},
-      {id:'f',x:100,y:320}, {id:'g',x:300,y:320},
-      {id:'h',x:200,y:140}, {id:'i',x:200,y:260},
-      {id:'x1',x:150,y:100}, {id:'x2',x:250,y:100},
-      {id:'x3',x:150,y:300}, {id:'x4',x:250,y:300},
-      {id:'e1',x:150,y:200}, {id:'e2',x:250,y:200},
-      {id:'e3',x:200,y:80}, {id:'e4',x:200,y:320}
-    ];
-    planks = [
-      {id:'p1', h1:'a', h2:'b', z:10},
-      {id:'p2', h1:'c', h2:'d', z:20}, {id:'p3', h1:'d', h2:'e', z:30},
-      {id:'p4', h1:'f', h2:'g', z:40},
-      {id:'p5', h1:'a', h2:'c', z:50}, {id:'p6', h1:'b', h2:'e', z:60},
-      {id:'p7', h1:'c', h2:'f', z:70}, {id:'p8', h1:'e', h2:'g', z:80},
-      {id:'p9', h1:'h', h2:'i', z:90}, {id:'p10', h1:'a', h2:'h', z:100},
-      {id:'p11', h1:'b', h2:'h', z:110}, {id:'p12', h1:'f', h2:'i', z:120},
-      {id:'p13', h1:'g', h2:'i', z:130}
-    ];
-    screws = [
-      {id:'s1', holeId:'a'}, {id:'s2', holeId:'b'}, {id:'s3', holeId:'c'}, {id:'s4', holeId:'d'}, {id:'s5', holeId:'e'},
-      {id:'s6', holeId:'f'}, {id:'s7', holeId:'g'}, {id:'s8', holeId:'h'}, {id:'s9', holeId:'i'}
-    ];
-    targetTime = 300;
+    maxMoves = 30;
   }
 
-  return { holes, screws, planks, targetTime };
+  return { holes, screws, planks, targetTime, maxMoves };
 }
 
 export function NutCraft({ onOutcome, reviveSignal }) {
@@ -332,7 +192,10 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   const [levelData, setLevelData] = useState(() => generateLevelData(0));
   
   const [time, setTime] = useState(levelData.targetTime);
-  const [lives, setLives] = useState(3);
+  const [movesLeft, setMovesLeft] = useState(levelData.maxMoves);
+  const [bestScore, setBestScore] = useState(() => parseInt(localStorage.getItem('veloop-best-nut-craft') || '0'));
+  const [hintedScrew, setHintedScrew] = useState(null);
+  const [validHoles, setValidHoles] = useState([]);
   
   const [screws, setScrews] = useState(levelData.screws);
   const [fallenPlanks, setFallenPlanks] = useState([]);
@@ -579,7 +442,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   useEffect(() => {
     if (phase === "playing") {
       if (fallenPlanks.length === levelData.planks.length && levelData.planks.length > 0) {
-        if (currentLevelIdx >= 9) {
+        if (currentLevelIdx >= 4) {
           setPhase("game_complete");
           playSound("complete", audioCtxRef);
         } else {
@@ -587,6 +450,15 @@ export function NutCraft({ onOutcome, reviveSignal }) {
           playSound("success", audioCtxRef);
         }
         const stars = calcStars();
+        const levelBonus = 200;
+        const movesBonus = movesLeft * 10;
+        const timeBonus = time * 2;
+        const finalScore = score + levelBonus + movesBonus + timeBonus;
+        setScore(finalScore);
+        if (finalScore > bestScore) {
+          setBestScore(finalScore);
+          localStorage.setItem('veloop-best-nut-craft', finalScore);
+        }
         setLevelStars(prev => {
           const newStars = [...prev];
           if (stars > newStars[currentLevelIdx]) newStars[currentLevelIdx] = stars;
@@ -598,21 +470,22 @@ export function NutCraft({ onOutcome, reviveSignal }) {
   }, [fallenPlanks, phase, levelData.planks.length, currentLevelIdx, time]);
 
   const loadLevel = (idx) => {
-    if (idx > 9) return;
+    if (idx > 4) return;
     setCurrentLevelIdx(idx);
     const nextData = generateLevelData(idx);
     setLevelData(nextData);
     setScrews(nextData.screws);
     setFallenPlanks([]);
     setTime(nextData.targetTime);
+    setMovesLeft(nextData.maxMoves);
     setSelectedScrew(null);
     setPhase("playing");
     initPhysics(nextData, nextData.screws);
   };
 
-  const handleNextLevel = () => { if (currentLevelIdx < 9) loadLevel(currentLevelIdx + 1); };
+  const handleNextLevel = () => { if (currentLevelIdx < 4) loadLevel(currentLevelIdx + 1); };
   const handleRetry = () => { loadLevel(currentLevelIdx); };
-  const handlePlayAgain = () => { setTotalTimeLeft(0); loadLevel(0); };
+  const handlePlayAgain = () => { setTotalTimeLeft(0); setScore(0); loadLevel(0); };
 
   const isHoleBlockedByPhysics = (holeId) => {
       const hole = levelData.holes.find(h => h.id === holeId);
@@ -713,6 +586,25 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     }
   };
 
+  
+  useEffect(() => {
+    if (selectedScrew) {
+      const vHoles = levelData.holes.filter(h => !screws.some(s => s.holeId === h.id) && !isHoleBlockedByPhysics(h.id));
+      setValidHoles(vHoles.map(h => h.id));
+    } else {
+      setValidHoles([]);
+    }
+  }, [selectedScrew, screws, levelData, isHoleBlockedByPhysics]);
+
+  const handleHint = () => {
+    if (score >= 20) {
+      setScore(s => s - 20);
+      const randomScrew = screws[Math.floor(Math.random() * screws.length)];
+      setHintedScrew(randomScrew.id);
+      setTimeout(() => setHintedScrew(null), 2000);
+    }
+  };
+
   const handleHoleClick = (holeId) => {
     if (phase !== "playing" || !selectedScrew) return;
     
@@ -725,11 +617,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
     if (isHoleBlockedByPhysics(holeId)) {
        playSound("error", audioCtxRef);
-       setLives(l => {
-           const newLives = l - 1;
-           if (newLives <= 0) setPhase("failed");
-           return newLives;
-       });
+       return;
        return; 
     }
 
@@ -762,6 +650,14 @@ export function NutCraft({ onOutcome, reviveSignal }) {
     setScrews(newScrews);
     setSelectedScrew(null);
     updateConstraints(newScrews, levelData, null);
+    
+    setMovesLeft(m => {
+        const next = m - 1;
+        if (next <= 0 && fallenPlanks.length < levelData.planks.length) {
+            setPhase("failed");
+        }
+        return next;
+    });
   };
 
   const calcStars = () => {
@@ -776,7 +672,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         <div className="nc-modal">
           <h1 style={{fontSize: 28, marginBottom: 20}}>NUTCRAFT LEVELS</h1>
           <div style={{display:'flex', flexDirection:'column', gap: 12, width: '80%', maxHeight: '300px', overflowY: 'auto'}}>
-            {[1,2,3,4,5,6,7,8,9,10].map((lvl, idx) => (
+            {[1,2,3,4,5].map((lvl, idx) => (
               <button key={lvl} className="nc-modal-btn" onClick={() => loadLevel(idx)}
                 style={{display:'flex', justifyContent:'space-between', padding: '16px 24px', border: 'none'}}>
                 <span>LEVEL {lvl}</span><span>{"⭐".repeat(levelStars[idx])}</span>
@@ -793,7 +689,11 @@ export function NutCraft({ onOutcome, reviveSignal }) {
 
   return (
     <GameShell 
-      title="Nut Craft" score={score} lives={lives} time={time} level={currentLevelIdx + 1}
+      title="Nut Craft" score={score} time={time} level={currentLevelIdx + 1} extraHud={<>
+          <span className="hud-moves" style={{marginRight: 10, fontWeight: 'bold', color: movesLeft <= 5 ? '#ff5252' : '#e2e8f0'}}>Moves: {movesLeft}/{levelData.maxMoves}</span>
+          <span className="hud-best" style={{marginRight: 10, fontWeight: 'bold', color: '#ffd54f'}}>Best: {bestScore}</span>
+          <button onClick={handleHint} style={{background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: 4, cursor: 'pointer', opacity: score >= 20 ? 1 : 0.5}}>Hint (-20)</button>
+        </>}
       phase={phase === "level_complete" || phase === "failed" || phase === "game_complete" ? "playing" : phase} 
       onPause={() => setPhase(p => p === "paused" ? "playing" : "paused")} 
       onResume={() => setPhase("playing")} 
@@ -814,7 +714,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         {phase === "game_complete" && (
           <div className="nc-modal">
             <h1 style={{fontSize: 28, textAlign: 'center'}}>NUTCRAFT COMPLETE!</h1>
-            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>ALL 10 LEVELS COMPLETED</p>
+            <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>ALL 5 LEVELS COMPLETED</p>
             <div className="nc-stars" style={{marginBottom: 16}}>{"⭐".repeat(calcStars())}</div>
             <div className="nc-modal-stats" style={{fontSize: 16, marginBottom: 24}}>Total Score: {score + (totalTimeLeft * 2)}<br/>Best Time Combined: {totalTimeLeft}s</div>
             <div style={{display:'flex', gap: 12, flexDirection: 'column', width: '80%'}}>
@@ -826,7 +726,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         
         {phase === "failed" && (
           <div className="nc-modal">
-            <h1 style={{color: '#ff5252'}}>{lives <= 0 ? 'GAME OVER' : 'OUT OF TIME'}</h1>
+            <h1 style={{color: '#ff5252'}}>{movesLeft <= 0 ? 'OUT OF MOVES' : 'OUT OF TIME'}</h1>
             <p style={{color: '#ffca28', fontWeight: 'bold', letterSpacing: 1, marginBottom: 16}}>Score: {score}</p>
             <div style={{display:'flex', gap: 12, flexDirection: 'column', width: '80%'}}>
               <button className="nc-modal-btn primary" onClick={handleRetry} style={{padding: '12px 16px'}}>RETRY</button>
@@ -835,7 +735,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
         )}
 
         {levelData.holes.map(hole => (
-          <div key={`h-${hole.id}`} className="hole hole-interactive" style={{ left: hole.x, top: hole.y }} onClick={() => handleHoleClick(hole.id)} />
+          <div key={`h-${hole.id}`} className={`hole hole-interactive ${validHoles.includes(hole.id) ? 'valid-move' : ''}`} style={{ left: hole.x, top: hole.y }} onClick={() => handleHoleClick(hole.id)} />
         ))}
 
         {levelData.planks.map(plank => {
@@ -885,7 +785,7 @@ export function NutCraft({ onOutcome, reviveSignal }) {
           return (
             <div
               key={screw.id}
-              className={`screw-interactive ${isSelected ? 'selected' : ''}`}
+              className={`screw-interactive ${isSelected ? 'selected' : ''} ${hintedScrew === screw.id ? 'hinted' : ''}`}
               style={{ left: `${hole.x}px`, top: `${hole.y}px`, zIndex: isSelected ? 250 : maxZ + 6 }}
               onClick={() => handleScrewClick(screw.id)}
             >
